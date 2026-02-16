@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+pydantic-settings
+pydantic[email]
+slowapi
+asyncpg
+supabase
+httpx
+python-jose[cryptography]
+cachetools
+certifi
+python-multipart
+alembic
+psycopg2-binary
+python-dotenv
+email-validator
