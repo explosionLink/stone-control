@@ -2,7 +2,7 @@
 
 from fastapi import Depends, HTTPException, Query               # Import delle utilità FastAPI (DI, errori, query)
 from sqlalchemy.ext.asyncio import AsyncSession                 # Sessione async SQLAlchemy
-from app.Infrastructure.db import get_db                        # Dependency per ottenere la sessione DB
+from app.Infrastructure.db_supabase import get_db                        # Dependency per ottenere la sessione DB
 from app.Services.user_service import UserService               # Service che incapsula la business logic sugli utenti
 from app.Schemas.auth_user import (                             # Schemi Pydantic: input/output
     AuthUserCreate,

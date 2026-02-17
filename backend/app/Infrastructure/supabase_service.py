@@ -5,7 +5,7 @@ import httpx
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
 
-from app.config import settings
+from app.core.config import settings
 
 """
 Service async per Supabase Auth (GoTrue).

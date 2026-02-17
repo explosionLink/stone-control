@@ -4,7 +4,7 @@ from jose import jwt, jwk
 from jose.exceptions import JWTError
 from cachetools import TTLCache
 from fastapi import HTTPException, status
-from app.config import settings
+from app.core.config import settings
 
 # Cache per le chiavi JWKS con un TTL (Time To Live) di 1 ora
 jwks_cache = TTLCache(maxsize=1, ttl=3600)

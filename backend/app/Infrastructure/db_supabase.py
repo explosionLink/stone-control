@@ -14,7 +14,7 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import text
 
-from app.config import settings
+from app.core.config import settings
 
 Base = declarative_base()
 

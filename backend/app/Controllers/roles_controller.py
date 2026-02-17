@@ -3,7 +3,7 @@
 from fastapi import Depends, HTTPException                    # Utilità FastAPI: dependency injection, eccezioni HTTP
 from sqlalchemy.ext.asyncio import AsyncSession               # Sessione asincrona di SQLAlchemy
 from uuid import UUID                                         # Tipo UUID per gli identificativi
-from app.Infrastructure.db import get_db                      # Dependency: fornisce una AsyncSession
+from app.Infrastructure.db_supabase import get_db                      # Dependency: fornisce una AsyncSession
 from app.Services.role_service import RoleService             # Service: logica di business per ruoli e user_roles
 from app.Schemas.role import (                                # Schemi Pydantic (input/output) per i ruoli
     RoleCreate,

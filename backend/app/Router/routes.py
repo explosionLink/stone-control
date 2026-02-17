@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # 🔒 Dipendenze/guardie
 from app.Router.auth import require_roles, get_current_claims
-from app.Infrastructure.db import get_db
+from app.Infrastructure.db_supabase import get_db
 
 # 📦 Controller applicativi
 from app.Controllers.auth_controller import AuthController
