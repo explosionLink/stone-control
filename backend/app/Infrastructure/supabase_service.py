@@ -13,7 +13,7 @@ TUTTE le chiamate usano la SERVICE KEY nel solo header 'apikey'.
 Per ottenere l'utente corrente da un access token del client, chiamiamo
 /auth/v1/user con:
   - Authorization: Bearer <access_token>
-  - apikey: <SUPABASE_KEY>
+  - apikey: <SUPABASE_SERVICE_KEY>
 """
 
 def _service_headers() -> dict[str, str]:
@@ -145,7 +145,7 @@ async def get_user_from_access_token(access_token: str) -> Dict[str, Any]:
     """
     /auth/v1/user:
       - Authorization: Bearer <access_token>
-      - apikey: <SUPABASE_KEY>
+      - apikey: <SUPABASE_SERVICE_KEY>
     """
     if not access_token:
         return {"error": "auth", "message": "missing token", "http_status": 401}
