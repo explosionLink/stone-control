@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from jose import jwt
 
-from app.Infrastructure.db import get_db
+from app.Infrastructure.db_supabase import get_db
 from app.Infrastructure import supabase_service
 from app.Router.auth import get_current_claims
 from app.Repositories.user_role_repository import UserRoleRepository
@@ -26,7 +26,7 @@ from app.Schemas.auth_session import (
     ListFactorsResponse,
     MfaDisableInput,
 )
-from app.config import settings
+from app.core.config import settings
 
 bearer = HTTPBearer(auto_error=True)
 

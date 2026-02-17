@@ -9,9 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.Infrastructure.db import get_db
+from app.Infrastructure.db_supabase import get_db
 from app.Models.auth_user import AuthUser
-from app.Models.general_account import GeneralAccount
 from app.Router.auth import get_current_claims, require_roles
 from app.Repositories.user_role_repository import UserRoleRepository
 
@@ -52,23 +51,3 @@ async def get_current_user(
     is_admin = "admin" in roles
 
     return CurrentUser(id=user_id, email=cast(str, claims.get("email")), roles=roles, is_admin=is_admin)
-
-
-async def get_current_general_account_id(
-    current_user: CurrentUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> UUID:
-    """
-    Recupera il general_account_id associato all'utente corrente.
-    Lancia un'eccezione 404 se non viene trovato nessun account.
-    """
-    stmt = select(GeneralAccount.id).where(GeneralAccount.user_id == current_user.id).limit(1)
-    result = await db.execute(stmt)
-    general_account_id = result.scalar_one_or_none()
-
-    if not general_account_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nessun General Account trovato per l'utente corrente.",
-        )
-    return general_account_id

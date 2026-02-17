@@ -3,16 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional
 
 from sqlalchemy import String, Boolean, SmallInteger, Text, TIMESTAMP
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.Infrastructure.db import Base
-
-if TYPE_CHECKING:
-    from app.Models.general_account import GeneralAccount
+from app.Infrastructure.db_supabase import Base
 
 
 class AuthUser(Base):
@@ -53,8 +50,3 @@ class AuthUser(Base):
     is_sso_user: Mapped[bool] = mapped_column(Boolean, default=False)
     deleted_at: Mapped[Any | None] = mapped_column(TIMESTAMP(timezone=True))
     is_anonymous: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    # Relazione inversa
-    general_account: Mapped[Optional["GeneralAccount"]] = relationship(
-        "GeneralAccount", back_populates="user"
-    )
