@@ -12,6 +12,5 @@ cachetools
 certifi
 python-multipart
 alembic
-psycopg2-binary
 python-dotenv
 email-validator
