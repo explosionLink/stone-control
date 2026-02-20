@@ -13,14 +13,14 @@ from app.Infrastructure.db_supabase import get_db
 
 # 📦 Controller applicativi
 from app.Controllers.supabase_auth_controller import SupabaseAuthController
-from app.Controllers.users_controller import UsersController
+from app.Controllers.user_supabase_controller import UserSupabaseController
 from app.Controllers.roles_controller import RolesController
 from app.Controllers.user_roles_controller import UserRolesController
 
 # 📦 Schemi response (opzionali ma utili in Swagger)
 from app.Schemas.user_supabase import UserSupabaseRead
 from app.Schemas.role import RoleRead
-from app.Schemas.auth_session import LoginResponse, RegisterResponse, LogoutResponse, LoginMfaChallenge
+from app.Schemas.supabase_session import SupabaseLoginResponse, SupabaseRegisterResponse, SupabaseLogoutResponse, SupabaseLoginMfaChallenge
 
 # Repo per diagnostica ruoli
 from app.Repositories.user_role_repository import UserRoleRepository
@@ -29,7 +29,7 @@ from app.Repositories.user_role_repository import UserRoleRepository
 # Istanze controller (stateless)
 # ──────────────────────────────────────────────────────────────────────────────
 auth = SupabaseAuthController()
-users = UsersController()
+users = UserSupabaseController()
 roles = RolesController()
 user_roles = UserRolesController()
 
@@ -44,13 +44,13 @@ router = APIRouter()
 router_auth = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
 # LOGIN/REGISTER pubblici
-router_auth.post("/login", response_model=LoginResponse | LoginMfaChallenge)(auth.login)
-router_auth.post("/register", response_model=RegisterResponse)(auth.register)
+router_auth.post("/login", response_model=SupabaseLoginResponse | SupabaseLoginMfaChallenge)(auth.login)
+router_auth.post("/register", response_model=SupabaseRegisterResponse)(auth.register)
 
 # LOGOUT protetto: richiede un token valido
 router_auth.post(
     "/logout",
-    response_model=LogoutResponse,
+    response_model=SupabaseLogoutResponse,
     dependencies=[Depends(get_current_claims)],
 )(auth.logout)
 
@@ -72,10 +72,10 @@ async def my_roles(
 # ──────────────────────────────────────────────────────────────────────────────
 # 🔐 MFA (Multi-Factor Authentication)
 # ──────────────────────────────────────────────────────────────────────────────
-from app.Schemas.auth_session import (
-    VerifyMfaResponse,
-    TotpEnrollResponse,
-    ListFactorsResponse,
+from app.Schemas.supabase_session import (
+    SupabaseVerifyMfaResponse,
+    SupabaseTotpEnrollResponse,
+    SupabaseListFactorsResponse,
 )
 
 router_mfa = APIRouter(
@@ -84,30 +84,30 @@ router_mfa = APIRouter(
 )
 
 # VERIFY (pubblico nel senso che non richiede un token AAL2, ma un AAL1 valido)
-router_mfa.post("/verify", response_model=VerifyMfaResponse)(auth.verify_mfa)
+router_mfa.post("/verify", response_model=SupabaseVerifyMfaResponse)(auth.verify_mfa)
 
 # ENROLL, LIST, DELETE (richiedono token valido)
 router_mfa.post(
     "/enroll-totp",
-    response_model=TotpEnrollResponse,
+    response_model=SupabaseTotpEnrollResponse,
     dependencies=[Depends(get_current_claims)],
 )(auth.enroll_totp)
 
 router_mfa.get(
     "/factors",
-    response_model=ListFactorsResponse,
+    response_model=SupabaseListFactorsResponse,
     dependencies=[Depends(get_current_claims)],
 )(auth.list_factors)
 
 router_mfa.delete(
     "/factors/{factor_id}",
-    response_model=LogoutResponse,  # Ritorna {ok: true}
+    response_model=SupabaseLogoutResponse,  # Ritorna {ok: true}
     dependencies=[Depends(get_current_claims)],
 )(auth.delete_factor)
 
 router_mfa.post(
     "/disable",
-    response_model=VerifyMfaResponse,
+    response_model=SupabaseVerifyMfaResponse,
     dependencies=[Depends(get_current_claims)],
 )(auth.disable_mfa)
 

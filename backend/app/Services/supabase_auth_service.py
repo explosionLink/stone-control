@@ -9,10 +9,10 @@ from sqlalchemy.exc import IntegrityError
 
 from app.Infrastructure import supabase_auth_client
 from app.Repositories.user_role_repository import UserRoleRepository
-from app.Schemas.auth_session import (
-    LoginInput,
-    RegisterInput,
-    VerifyMfaInput,
+from app.Schemas.supabase_session import (
+    SupabaseLoginInput,
+    SupabaseRegisterInput,
+    SupabaseVerifyMfaInput,
 )
 
 class SupabaseAuthService:
@@ -24,7 +24,7 @@ class SupabaseAuthService:
     def __init__(self, db: Optional[AsyncSession] = None):
         self.db = db
 
-    async def login(self, payload: LoginInput) -> Dict[str, Any]:
+    async def login(self, payload: SupabaseLoginInput) -> Dict[str, Any]:
         """
         Esegue il login dell'utente e gestisce l'eventuale richiesta di MFA.
         """
@@ -74,7 +74,7 @@ class SupabaseAuthService:
             "user": user_obj,
         }
 
-    async def verify_mfa(self, payload: VerifyMfaInput) -> Dict[str, Any]:
+    async def verify_mfa(self, payload: SupabaseVerifyMfaInput) -> Dict[str, Any]:
         """
         Verifica il codice MFA fornito dall'utente.
         """
@@ -159,7 +159,7 @@ class SupabaseAuthService:
 
         return verify_res
 
-    async def register(self, payload: RegisterInput) -> Dict[str, Any]:
+    async def register(self, payload: SupabaseRegisterInput) -> Dict[str, Any]:
         """
         Registra un nuovo utente e gli assegna il ruolo predefinito.
         """

@@ -9,19 +9,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.Infrastructure.db_supabase import get_db
 from app.Router.supabase_auth import get_current_claims
 from app.Services.supabase_auth_service import SupabaseAuthService
-from app.Schemas.auth_session import (
-    LoginInput,
-    LoginResponse,
-    RegisterInput,
-    RegisterResponse,
-    LogoutResponse,
-    LoginMfaChallenge,
-    VerifyMfaInput,
-    VerifyMfaResponse,
-    TotpEnrollInput,
-    TotpEnrollResponse,
-    ListFactorsResponse,
-    MfaDisableInput,
+from app.Schemas.supabase_session import (
+    SupabaseLoginInput,
+    SupabaseLoginResponse,
+    SupabaseRegisterInput,
+    SupabaseRegisterResponse,
+    SupabaseLogoutResponse,
+    SupabaseLoginMfaChallenge,
+    SupabaseVerifyMfaInput,
+    SupabaseVerifyMfaResponse,
+    SupabaseTotpEnrollInput,
+    SupabaseTotpEnrollResponse,
+    SupabaseListFactorsResponse,
+    SupabaseMfaDisableInput,
 )
 from app.Infrastructure import supabase_auth_client
 
@@ -36,7 +36,7 @@ class SupabaseAuthController:
     def __init__(self) -> None:
         pass
 
-    async def login(self, payload: LoginInput) -> LoginResponse | LoginMfaChallenge:
+    async def login(self, payload: SupabaseLoginInput) -> SupabaseLoginResponse | SupabaseLoginMfaChallenge:
         """
         Endpoint per il login dell'utente.
         Supporta il flusso standard e quello con MFA.
@@ -51,14 +51,14 @@ class SupabaseAuthController:
             )
 
         if res.get("status") == "mfa_required":
-            return LoginMfaChallenge(
+            return SupabaseLoginMfaChallenge(
                 status="mfa_required",
                 access_token=res.get("access_token"),
                 factor_id=res.get("factor_id"),
                 challenge_id=res.get("challenge_id"),
             )
 
-        return LoginResponse(
+        return SupabaseLoginResponse(
             access_token=res.get("access_token"),
             token_type=res.get("token_type"),
             expires_in=res.get("expires_in"),
@@ -66,7 +66,7 @@ class SupabaseAuthController:
             user=res.get("user"),
         )
 
-    async def verify_mfa(self, payload: VerifyMfaInput) -> VerifyMfaResponse:
+    async def verify_mfa(self, payload: SupabaseVerifyMfaInput) -> SupabaseVerifyMfaResponse:
         """
         Endpoint per la verifica del codice MFA.
         """
@@ -79,7 +79,7 @@ class SupabaseAuthController:
                 detail=res.get("message") or "Codice OTP non valido"
             )
 
-        return VerifyMfaResponse(
+        return SupabaseVerifyMfaResponse(
             access_token=res.get("access_token") or payload.access_token,
             token_type=res.get("token_type") or "bearer",
             expires_in=res.get("expires_in"),
@@ -89,9 +89,9 @@ class SupabaseAuthController:
 
     async def enroll_totp(
         self,
-        payload: TotpEnrollInput | None = None,
+        payload: SupabaseTotpEnrollInput | None = None,
         creds: HTTPAuthorizationCredentials = Depends(bearer),
-    ) -> TotpEnrollResponse:
+    ) -> SupabaseTotpEnrollResponse:
         """
         Endpoint per l'attivazione del MFA (TOTP).
         """
@@ -105,11 +105,11 @@ class SupabaseAuthController:
             status_code = res.get("http_status") or status.HTTP_400_BAD_REQUEST
             raise HTTPException(status_code=status_code, detail=res.get("message"))
 
-        return TotpEnrollResponse(**res)
+        return SupabaseTotpEnrollResponse(**res)
 
     async def list_factors(
         self, creds: HTTPAuthorizationCredentials = Depends(bearer)
-    ) -> ListFactorsResponse:
+    ) -> SupabaseListFactorsResponse:
         """
         Endpoint per elencare i fattori MFA dell'utente.
         """
@@ -117,13 +117,13 @@ class SupabaseAuthController:
         res = await svc.list_factors(creds.credentials)
         if res.get("error"):
             raise HTTPException(status_code=400, detail=res.get("message") or "Errore recupero fattori")
-        return ListFactorsResponse(factors=res.get("factors", []))
+        return SupabaseListFactorsResponse(factors=res.get("factors", []))
 
     async def delete_factor(
         self,
         factor_id: str = Path(..., description="ID del fattore TOTP da eliminare"),
         creds: HTTPAuthorizationCredentials = Depends(bearer),
-    ) -> LogoutResponse:
+    ) -> SupabaseLogoutResponse:
         """
         Endpoint per eliminare un fattore MFA.
         """
@@ -132,13 +132,13 @@ class SupabaseAuthController:
         if isinstance(res, dict) and res.get("error"):
             status_code = int(res.get("http_status") or 400)
             raise HTTPException(status_code=status_code, detail=res.get("message"))
-        return LogoutResponse(ok=True)
+        return SupabaseLogoutResponse(ok=True)
 
     async def disable_mfa(
         self,
-        payload: MfaDisableInput,
+        payload: SupabaseMfaDisableInput,
         creds: HTTPAuthorizationCredentials = Depends(bearer),
-    ) -> VerifyMfaResponse:
+    ) -> SupabaseVerifyMfaResponse:
         """
         Endpoint per disabilitare il MFA.
         """
@@ -149,7 +149,7 @@ class SupabaseAuthController:
             status_code = res.get("http_status") or 500
             raise HTTPException(status_code=status_code, detail=res.get("message"))
 
-        return VerifyMfaResponse(
+        return SupabaseVerifyMfaResponse(
             access_token=res.get("access_token"),
             token_type=res.get("token_type", "bearer"),
             expires_in=res.get("expires_in"),
@@ -159,9 +159,9 @@ class SupabaseAuthController:
 
     async def register(
         self,
-        payload: RegisterInput,
+        payload: SupabaseRegisterInput,
         db: AsyncSession = Depends(get_db),
-    ) -> RegisterResponse:
+    ) -> SupabaseRegisterResponse:
         """
         Endpoint per la registrazione di un nuovo utente.
         """
@@ -176,12 +176,12 @@ class SupabaseAuthController:
         if not user_id_str:
             raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="ID utente mancante nella risposta")
 
-        return RegisterResponse(user_id=user_id_str, email=user.get("email"), user=user)
+        return SupabaseRegisterResponse(user_id=user_id_str, email=user.get("email"), user=user)
 
     async def logout(
         self,
         claims=Depends(get_current_claims),
-    ) -> LogoutResponse:
+    ) -> SupabaseLogoutResponse:
         """
         Endpoint per il logout dell'utente.
         """
@@ -191,4 +191,4 @@ class SupabaseAuthController:
             if res.get("error"):
                 status_code = int(res.get("http_status") or 502)
                 raise HTTPException(status_code=status_code, detail=res.get("message"))
-        return LogoutResponse(ok=True)
+        return SupabaseLogoutResponse(ok=True)

@@ -1,4 +1,4 @@
-# app/Controllers/users_controller.py
+# app/Controllers/user_supabase_controller.py
 
 from fastapi import Depends, HTTPException, Query               # Import delle utilità FastAPI (DI, errori, query)
 from sqlalchemy.ext.asyncio import AsyncSession                 # Sessione async SQLAlchemy
@@ -11,7 +11,7 @@ from app.Schemas.user_supabase import (                             # Schemi Pyd
 )
 from uuid import UUID                                           # Tipi UUID per gli identificativi
 
-class UsersController:
+class UserSupabaseController:
     def __init__(self): ...                                     # Nessuna inizializzazione particolare
 
     async def list_users(
