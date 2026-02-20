@@ -1,11 +1,11 @@
-# app/Infrastructure/supabase_service.py
+# app/Infrastructure/supabase_auth_client.py
 
 from __future__ import annotations
 import httpx
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
 
-from app.core.config import settings
+from app.Core.config import settings
 
 """
 Service async per Supabase Auth (GoTrue).

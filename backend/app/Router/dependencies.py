@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.Infrastructure.db_supabase import get_db
-from app.Models.auth_user import AuthUser
-from app.Router.auth import get_current_claims, require_roles
+from app.Models.user_supabase import UserSupabase
+from app.Router.supabase_auth import get_current_claims, require_roles
 from app.Repositories.user_role_repository import UserRoleRepository
 
 

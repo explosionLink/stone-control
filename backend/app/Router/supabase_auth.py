@@ -1,4 +1,4 @@
-# app/Router/auth.py
+# app/Router/supabase_auth.py
 from __future__ import annotations
 
 from uuid import UUID
@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.Infrastructure.db_supabase import get_db
-from app.Services.jwt_service import get_jwks, validate_token_local
+from app.Services.supabase_jwt_service import get_jwks, validate_token_local
 from app.Repositories.user_role_repository import UserRoleRepository
 
 bearer = HTTPBearer(auto_error=True)

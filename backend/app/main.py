@@ -7,7 +7,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.Router.routes import router
-from app.core.config import settings
+from app.Core.config import settings
 from app.Middleware.security_headers import SecurityHeadersMiddleware
 
 # Custom key function to exclude OPTIONS requests from rate limiting

@@ -8,17 +8,17 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # 🔒 Dipendenze/guardie
-from app.Router.auth import require_roles, get_current_claims
+from app.Router.supabase_auth import require_roles, get_current_claims
 from app.Infrastructure.db_supabase import get_db
 
 # 📦 Controller applicativi
-from app.Controllers.auth_controller import AuthController
+from app.Controllers.supabase_auth_controller import SupabaseAuthController
 from app.Controllers.users_controller import UsersController
 from app.Controllers.roles_controller import RolesController
 from app.Controllers.user_roles_controller import UserRolesController
 
 # 📦 Schemi response (opzionali ma utili in Swagger)
-from app.Schemas.auth_user import AuthUserRead
+from app.Schemas.user_supabase import UserSupabaseRead
 from app.Schemas.role import RoleRead
 from app.Schemas.auth_session import LoginResponse, RegisterResponse, LogoutResponse, LoginMfaChallenge
 
@@ -28,7 +28,7 @@ from app.Repositories.user_role_repository import UserRoleRepository
 # ──────────────────────────────────────────────────────────────────────────────
 # Istanze controller (stateless)
 # ──────────────────────────────────────────────────────────────────────────────
-auth = AuthController()
+auth = SupabaseAuthController()
 users = UsersController()
 roles = RolesController()
 user_roles = UserRolesController()
@@ -126,10 +126,10 @@ router_users = APIRouter(
     dependencies=[Depends(require_roles(["admin"]))],  # protezione group-level
 )
 
-router_users.get("/", response_model=list[AuthUserRead])(users.list_users)
-router_users.get("/{user_id}", response_model=AuthUserRead)(users.get_user)
-router_users.post("/", response_model=AuthUserRead)(users.create_user)
-router_users.put("/{user_id}", response_model=AuthUserRead)(users.update_user)
+router_users.get("/", response_model=list[UserSupabaseRead])(users.list_users)
+router_users.get("/{user_id}", response_model=UserSupabaseRead)(users.get_user)
+router_users.post("/", response_model=UserSupabaseRead)(users.create_user)
+router_users.put("/{user_id}", response_model=UserSupabaseRead)(users.update_user)
 router_users.delete("/{user_id}")(users.delete_user)
 
 router.include_router(router_users)
