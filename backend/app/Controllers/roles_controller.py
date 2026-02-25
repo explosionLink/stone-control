@@ -1,10 +1,11 @@
 # app/Controllers/roles_controller.py
 
+from typing import Annotated
 from fastapi import Depends, HTTPException                    # Utilità FastAPI: dependency injection, eccezioni HTTP
 from sqlalchemy.ext.asyncio import AsyncSession               # Sessione asincrona di SQLAlchemy
 from uuid import UUID                                         # Tipo UUID per gli identificativi
 from app.Infrastructure.db_supabase import get_db                      # Dependency: fornisce una AsyncSession
-from app.Services.role_service import RoleService             # Service: logica di business per ruoli e user_roles
+from app.Services.role_service import RoleService             # Service: logica di business per ruoli e user_supabase_roles
 from app.Schemas.role import (                                # Schemi Pydantic (input/output) per i ruoli
     RoleCreate,
     RoleUpdate,
@@ -15,7 +16,7 @@ class RolesController:
 
     async def list_roles(
         self,
-        db: AsyncSession = Depends(get_db),                   # Inietta la sessione DB asincrona
+        db: Annotated[AsyncSession, Depends(get_db)],         # Inietta la sessione DB asincrona
     ) -> list[RoleRead]:                                      # Ritorna una lista di DTO di ruoli
         svc = RoleService(db)                                 # Istanzia il service ruoli
         rows = await svc.roles.list()                         # Chiede al service l’elenco dei ruoli
@@ -24,7 +25,7 @@ class RolesController:
     async def get_role(
         self,
         role_id: UUID,                                        # ID del ruolo (UUID, allineato al DB)
-        db: AsyncSession = Depends(get_db),                   # Sessione DB asincrona
+        db: Annotated[AsyncSession, Depends(get_db)],         # Sessione DB asincrona
     ) -> RoleRead:                                            # Ritorna il DTO del ruolo
         svc = RoleService(db)                                 # Istanzia il service ruoli
         row = await svc.roles.get(role_id)                    # Recupera il ruolo per ID
@@ -36,7 +37,7 @@ class RolesController:
     async def create_role(
         self,
         payload: RoleCreate,                                  # Body JSON validato per la creazione
-        db: AsyncSession = Depends(get_db),                   # Sessione DB asincrona
+        db: Annotated[AsyncSession, Depends(get_db)],         # Sessione DB asincrona
     ) -> RoleRead:                                            # Ritorna il DTO del ruolo creato
         svc = RoleService(db)                                 # Istanzia il service ruoli
         row = await svc.roles.create(payload.model_dump())    # Crea il ruolo (passa i campi del payload)
@@ -46,7 +47,7 @@ class RolesController:
         self,
         role_id: UUID,                                        # ID del ruolo da aggiornare
         payload: RoleUpdate,                                  # Body con campi parziali aggiornabili
-        db: AsyncSession = Depends(get_db),                   # Sessione DB asincrona
+        db: Annotated[AsyncSession, Depends(get_db)],         # Sessione DB asincrona
     ) -> RoleRead:                                            # Ritorna il DTO aggiornato
         svc = RoleService(db)                                 # Istanzia il service ruoli
         row = await svc.roles.update(                         # Esegue l’aggiornamento
@@ -61,7 +62,7 @@ class RolesController:
     async def delete_role(
         self,
         role_id: UUID,                                        # ID del ruolo da eliminare
-        db: AsyncSession = Depends(get_db),                   # Sessione DB asincrona
+        db: Annotated[AsyncSession, Depends(get_db)],         # Sessione DB asincrona
     ) -> dict:                                                # Ritorna un esito semplice
         svc = RoleService(db)                                 # Istanzia il service ruoli
         ok = await svc.roles.delete(role_id)                  # Prova a eliminare il ruolo

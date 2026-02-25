@@ -1,6 +1,7 @@
 # app/Controllers/supabase_auth_controller.py
 
 from __future__ import annotations
+from typing import Annotated, Optional
 from uuid import UUID
 from fastapi import Depends, HTTPException, status, Path
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -89,8 +90,8 @@ class SupabaseAuthController:
 
     async def enroll_totp(
         self,
-        payload: SupabaseTotpEnrollInput | None = None,
-        creds: HTTPAuthorizationCredentials = Depends(bearer),
+        creds: Annotated[HTTPAuthorizationCredentials, Depends(bearer)],
+        payload: Optional[SupabaseTotpEnrollInput] = None,
     ) -> SupabaseTotpEnrollResponse:
         """
         Endpoint per l'attivazione del MFA (TOTP).
@@ -108,7 +109,8 @@ class SupabaseAuthController:
         return SupabaseTotpEnrollResponse(**res)
 
     async def list_factors(
-        self, creds: HTTPAuthorizationCredentials = Depends(bearer)
+        self,
+        creds: Annotated[HTTPAuthorizationCredentials, Depends(bearer)]
     ) -> SupabaseListFactorsResponse:
         """
         Endpoint per elencare i fattori MFA dell'utente.
@@ -121,8 +123,8 @@ class SupabaseAuthController:
 
     async def delete_factor(
         self,
-        factor_id: str = Path(..., description="ID del fattore TOTP da eliminare"),
-        creds: HTTPAuthorizationCredentials = Depends(bearer),
+        factor_id: Annotated[str, Path(description="ID del fattore TOTP da eliminare")],
+        creds: Annotated[HTTPAuthorizationCredentials, Depends(bearer)],
     ) -> SupabaseLogoutResponse:
         """
         Endpoint per eliminare un fattore MFA.
@@ -137,7 +139,7 @@ class SupabaseAuthController:
     async def disable_mfa(
         self,
         payload: SupabaseMfaDisableInput,
-        creds: HTTPAuthorizationCredentials = Depends(bearer),
+        creds: Annotated[HTTPAuthorizationCredentials, Depends(bearer)],
     ) -> SupabaseVerifyMfaResponse:
         """
         Endpoint per disabilitare il MFA.
@@ -160,7 +162,7 @@ class SupabaseAuthController:
     async def register(
         self,
         payload: SupabaseRegisterInput,
-        db: AsyncSession = Depends(get_db),
+        db: Annotated[AsyncSession, Depends(get_db)],
     ) -> SupabaseRegisterResponse:
         """
         Endpoint per la registrazione di un nuovo utente.
@@ -180,7 +182,7 @@ class SupabaseAuthController:
 
     async def logout(
         self,
-        claims=Depends(get_current_claims),
+        claims: Annotated[dict, Depends(get_current_claims)],
     ) -> SupabaseLogoutResponse:
         """
         Endpoint per il logout dell'utente.

@@ -1,5 +1,6 @@
 # app/Controllers/user_supabase_controller.py
 
+from typing import Annotated
 from fastapi import Depends, HTTPException, Query               # Import delle utilità FastAPI (DI, errori, query)
 from sqlalchemy.ext.asyncio import AsyncSession                 # Sessione async SQLAlchemy
 from app.Infrastructure.db_supabase import get_db                        # Dependency per ottenere la sessione DB
@@ -16,9 +17,9 @@ class UserSupabaseController:
 
     async def list_users(
         self,
+        db: Annotated[AsyncSession, Depends(get_db)],           # Sessione DB async iniettata da FastAPI
         offset: int = 0,                                        # Paginazione: da quale record partire (default 0)
         limit: int = Query(50, le=200),                         # Paginazione: quanti record (max 200)
-        db: AsyncSession = Depends(get_db),                     # Sessione DB async iniettata da FastAPI
     ) -> list[UserSupabaseRead]:                                    # Ritorna una lista serializzabile di utenti
         svc = UserSupabaseService(db)                                   # Istanzia il service passandogli la sessione
         rows = await svc.list_users(offset, limit)              # Recupera gli utenti dal repository via service
@@ -27,7 +28,7 @@ class UserSupabaseController:
     async def get_user(
         self,
         user_id: UUID,                                          # ID utente come UUID (allineato al DB)
-        db: AsyncSession = Depends(get_db),                     # Sessione DB async iniettata
+        db: Annotated[AsyncSession, Depends(get_db)],           # Sessione DB async iniettata
     ) -> UserSupabaseRead:                                          # Ritorna il DTO utente
         svc = UserSupabaseService(db)                                   # Istanzia il service
         row = await svc.get_user(user_id)                       # Recupera il singolo utente
@@ -38,7 +39,7 @@ class UserSupabaseController:
     async def create_user(
         self,
         payload: UserSupabaseCreate,                                # Body JSON validato (email/password/meta)
-        db: AsyncSession = Depends(get_db),                     # Sessione DB async
+        db: Annotated[AsyncSession, Depends(get_db)],           # Sessione DB async
     ) -> UserSupabaseRead:                                          # Ritorna il DTO del nuovo utente
         svc = UserSupabaseService(db)                                   # Istanzia il service
         row = await svc.create_user_via_supabase(payload)       # Crea l’utente tramite Supabase Admin API
@@ -53,7 +54,7 @@ class UserSupabaseController:
         self,
         user_id: UUID,                                          # Utente da aggiornare (UUID)
         payload: UserSupabaseUpdate,                                # Body parziale con i campi aggiornabili
-        db: AsyncSession = Depends(get_db),                     # Sessione DB async
+        db: Annotated[AsyncSession, Depends(get_db)],           # Sessione DB async
     ) -> UserSupabaseRead:                                          # Ritorna il DTO aggiornato
         svc = UserSupabaseService(db)                                   # Istanzia il service
         row = await svc.update_user(                            # Esegue update con i soli campi presenti
@@ -67,7 +68,7 @@ class UserSupabaseController:
     async def delete_user(
         self,
         user_id: UUID,                                          # Utente da eliminare (UUID)
-        db: AsyncSession = Depends(get_db),                     # Sessione DB async
+        db: Annotated[AsyncSession, Depends(get_db)],           # Sessione DB async
     ) -> dict:                                                  # Ritorna un semplice esito JSON
         svc = UserSupabaseService(db)                                   # Istanzia il service
         ok = await svc.delete_user(user_id)                     # Esegue la cancellazione

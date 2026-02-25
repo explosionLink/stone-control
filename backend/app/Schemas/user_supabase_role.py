@@ -12,7 +12,7 @@ class AssignRoleInput(BaseModel):
 
 # ✅ Schema per la lettura delle assegnazioni
 # Usato negli endpoint GET /users/{user_id}/roles
-class UserRoleRead(BaseModel):
+class UserSupabaseRoleRead(BaseModel):
     user_id: UUID   # ID utente
     role_id: UUID   # ID ruolo
 

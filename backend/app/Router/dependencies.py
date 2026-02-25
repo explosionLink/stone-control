@@ -12,7 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.Infrastructure.db_supabase import get_db
 from app.Models.user_supabase import UserSupabase
 from app.Router.supabase_auth import get_current_claims, require_roles
-from app.Repositories.user_role_repository import UserRoleRepository
+from app.Repositories.user_supabase_role_repository import UserSupabaseRoleRepository
 
 
 class CurrentUser:
@@ -45,9 +45,9 @@ async def get_current_user(
     except ValueError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token claim 'sub' non è un UUID valido")
 
-    repo = UserRoleRepository(db)
-    user_roles_models = await repo.list_user_roles(user_id)
-    roles = [role.name for role in user_roles_models]
+    repo = UserSupabaseRoleRepository(db)
+    user_supabase_roles_models = await repo.list_user_supabase_roles(user_id)
+    roles = [role.name for role in user_supabase_roles_models]
     is_admin = "admin" in roles
 
     return CurrentUser(id=user_id, email=cast(str, claims.get("email")), roles=roles, is_admin=is_admin)

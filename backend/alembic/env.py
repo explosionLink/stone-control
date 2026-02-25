@@ -16,7 +16,7 @@ from app.Core.config import settings
 from app.Infrastructure.db_supabase import Base
 # Importa i modelli per registrarli nel metadata
 from app.Models.role import Role
-from app.Models.user_role import UserRole
+from app.Models.user_supabase_role import UserSupabaseRole
 from app.Models.user_supabase import UserSupabase
 
 # this is the Alembic Config object, which provides

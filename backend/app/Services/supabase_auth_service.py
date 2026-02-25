@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.Infrastructure import supabase_auth_client
-from app.Repositories.user_role_repository import UserRoleRepository
+from app.Repositories.user_supabase_role_repository import UserSupabaseRoleRepository
 from app.Schemas.supabase_session import (
     SupabaseLoginInput,
     SupabaseRegisterInput,
@@ -183,7 +183,7 @@ class SupabaseAuthService:
         if self.db and user_id_str:
             # Assegna il ruolo 'user' predefinito
             user_role_id = UUID("0cc83a82-88f8-4ed9-9c92-ec9e09b266fd")
-            repo = UserRoleRepository(self.db)
+            repo = UserSupabaseRoleRepository(self.db)
             try:
                 await repo.assign(user_id=UUID(user_id_str), role_id=user_role_id)
             except IntegrityError:

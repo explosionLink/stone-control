@@ -9,20 +9,22 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import text
 
 from app.Core.config import settings
 
-# Base class for SQLAlchemy models
-Base = declarative_base()
+# Base class for SQLAlchemy models (SQLAlchemy 2.0 style)
+# Utilizzando una classe che eredita da DeclarativeBase risolviamo gli errori di tipo in Pylance
+class Base(DeclarativeBase):
+    pass
 
 # Import all models here to ensure they are registered with SQLAlchemy's Base
 # before any operation that needs them is executed. This prevents circular
 # dependency errors between models with relationships.
 from app.Models.user_supabase import UserSupabase
 from app.Models.role import Role
-from app.Models.user_role import UserRole
+from app.Models.user_supabase_role import UserSupabaseRole
 
 
 def _make_ssl_context() -> dict:

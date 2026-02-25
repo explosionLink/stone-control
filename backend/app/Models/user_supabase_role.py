@@ -7,9 +7,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import UniqueConstraint, ForeignKey
 from app.Infrastructure.db_supabase import Base
 
-__all__ = ["UserRole"]
+__all__ = ["UserSupabaseRole"]
 
-class UserRole(Base):
+class UserSupabaseRole(Base):
     __tablename__ = "user_roles"
     __table_args__ = (
         UniqueConstraint("user_id", "role_id", name="uq_user_role"),

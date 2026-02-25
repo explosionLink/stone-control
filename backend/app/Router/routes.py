@@ -15,7 +15,7 @@ from app.Infrastructure.db_supabase import get_db
 from app.Controllers.supabase_auth_controller import SupabaseAuthController
 from app.Controllers.user_supabase_controller import UserSupabaseController
 from app.Controllers.roles_controller import RolesController
-from app.Controllers.user_roles_controller import UserRolesController
+from app.Controllers.user_supabase_roles_controller import UserSupabaseRolesController
 
 # 📦 Schemi response (opzionali ma utili in Swagger)
 from app.Schemas.user_supabase import UserSupabaseRead
@@ -23,7 +23,7 @@ from app.Schemas.role import RoleRead
 from app.Schemas.supabase_session import SupabaseLoginResponse, SupabaseRegisterResponse, SupabaseLogoutResponse, SupabaseLoginMfaChallenge
 
 # Repo per diagnostica ruoli
-from app.Repositories.user_role_repository import UserRoleRepository
+from app.Repositories.user_supabase_role_repository import UserSupabaseRoleRepository
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Istanze controller (stateless)
@@ -31,7 +31,7 @@ from app.Repositories.user_role_repository import UserRoleRepository
 auth = SupabaseAuthController()
 users = UserSupabaseController()
 roles = RolesController()
-user_roles = UserRolesController()
+user_supabase_roles = UserSupabaseRolesController()
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Router principale aggregatore
@@ -64,9 +64,9 @@ async def my_roles(
     claims=Depends(get_current_claims),
     db: AsyncSession = Depends(get_db),
 ):
-    repo = UserRoleRepository(db)
+    repo = UserSupabaseRoleRepository(db)
     user_id = UUID(claims["sub"])
-    roles_list = await repo.list_user_roles(user_id)
+    roles_list = await repo.list_user_supabase_roles(user_id)
     return {"roles": [r.name for r in roles_list]}
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -154,29 +154,29 @@ router.include_router(router_roles)
 # ──────────────────────────────────────────────────────────────────────────────
 # 🔗 USER ↔ ROLES (protetto: admin tranne GET)
 # ──────────────────────────────────────────────────────────────────────────────
-router_user_roles = APIRouter(
+router_user_supabase_roles = APIRouter(
     prefix="/api/v1",
     tags=["User-Roles"],
 )
 
 # Ritorna direttamente i RUOLI (RoleRead) assegnati all'utente [protetto: user]
-router_user_roles.get(
+router_user_supabase_roles.get(
     "/users/{user_id}/roles",
     response_model=list[RoleRead],
     dependencies=[Depends(get_current_claims)],
-)(user_roles.list_user_roles)
+)(user_supabase_roles.list_user_supabase_roles)
 
 # Assegna un ruolo a un utente, e restituisce il ruolo assegnato [protetto: admin]
-router_user_roles.post(
+router_user_supabase_roles.post(
     "/users/assign-role",
     response_model=RoleRead,
     dependencies=[Depends(require_roles(["admin"]))],
-)(user_roles.assign_role)
+)(user_supabase_roles.assign_role)
 
 # Rimuove un ruolo da un utente [protetto: admin]
-router_user_roles.delete(
+router_user_supabase_roles.delete(
     "/users/{user_id}/roles/{role_id}",
     dependencies=[Depends(require_roles(["admin"]))],
-)(user_roles.unassign_role)
+)(user_supabase_roles.unassign_role)
 
-router.include_router(router_user_roles)
+router.include_router(router_user_supabase_roles)
