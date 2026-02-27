@@ -1,6 +1,6 @@
 from __future__ import annotations
 from supabase import create_client, Client
-from app.core.config import settings
+from app.Core.config import settings
 
 # Type alias for clarity in dependency injection
 SupabaseClient = Client

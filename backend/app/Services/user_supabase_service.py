@@ -5,19 +5,19 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.Repositories.auth_user_repository import AuthUserRepository
-from app.Infrastructure import supabase_service
-from app.Schemas.auth_user import AuthUserCreate
-from app.Models.auth_user import AuthUser
+from app.Repositories.user_supabase_repository import UserSupabaseRepository
+from app.Infrastructure import supabase_auth_client
+from app.Schemas.user_supabase import UserSupabaseCreate
+from app.Models.user_supabase import UserSupabase
 
 
-class UserService:
+class UserSupabaseService:
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.repo = AuthUserRepository(db)
+        self.repo = UserSupabaseRepository(db)
 
-    async def create_user_via_supabase(self, payload: AuthUserCreate) -> Optional[AuthUser]:
-        res = await supabase_service.register_user(
+    async def create_user_via_supabase(self, payload: UserSupabaseCreate) -> Optional[UserSupabase]:
+        res = await supabase_auth_client.register_user(
             email=payload.email,
             password=payload.password,
             user_meta=payload.user_meta,

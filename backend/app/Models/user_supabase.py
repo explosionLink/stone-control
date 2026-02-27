@@ -1,4 +1,4 @@
-# app/Models/auth_user.py
+# app/Models/user_supabase.py
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.Infrastructure.db_supabase import Base
 
 
-class AuthUser(Base):
+class UserSupabase(Base):
     __tablename__ = "users"
     __table_args__ = {"schema": "auth"}
 

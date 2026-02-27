@@ -1,65 +1,63 @@
-# app/Infrastructure/db.py
+# app/Infrastructure/db_supabase.py
 from __future__ import annotations
 
 from typing import AsyncGenerator
 import ssl
-import sys
-
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import text
 
-from app.core.config import settings
+from app.Core.config import settings
 
-Base = declarative_base()
+# Base class for SQLAlchemy models (SQLAlchemy 2.0 style)
+# Utilizzando una classe che eredita da DeclarativeBase risolviamo gli errori di tipo in Pylance
+class Base(DeclarativeBase):
+    pass
 
 # Import all models here to ensure they are registered with SQLAlchemy's Base
 # before any operation that needs them is executed. This prevents circular
 # dependency errors between models with relationships.
-from app.Models.auth_user import AuthUser
+from app.Models.user_supabase import UserSupabase
 from app.Models.role import Role
-from app.Models.user_role import UserRole
+from app.Models.user_supabase_role import UserSupabaseRole
 
 
 def _make_ssl_context() -> dict:
     """
-    Per asyncpg serve 'ssl': <SSLContext|bool>.
-    - Se l'URL è asyncpg, costruiamo un SSLContext che usa il bundle CA di 'certifi'
-      (evita errori su Windows dove il trust store può essere incompleto).
-    - Se DB_SSL_VERIFY=false, usiamo un contesto che NON verifica (solo dev).
+    Configura il contesto SSL per la connessione al database.
+    - Se l'URL utilizza asyncpg, viene costruito un SSLContext che utilizza il bundle CA di 'certifi'.
+    - In ambienti non di produzione, se DB_SSL_VERIFY è disabilitato, la verifica viene saltata.
     """
     if "+asyncpg" not in settings.DATABASE_URL:
         return {}
 
-    # bypass (solo dev)
+    # Bypass della verifica SSL (solo per sviluppo)
     if settings.ENV != "prod" and not settings.DB_SSL_VERIFY:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         return {"ssl": ctx}
 
-    # verifica stretta con certifi
+    # Verifica stretta utilizzando certifi
     try:
-        import certifi  # type: ignore
+        import certifi
         cafile = certifi.where()
         ctx = ssl.create_default_context(cafile=cafile)
-        # opzionale: forza TLS 1.2+
         if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
             ctx.minimum_version = ssl.TLSVersion.TLSv1_2
         return {"ssl": ctx}
     except Exception:
-        # fallback: ssl=True (usa store di sistema)
+        # Fallback all'uso del trust store di sistema
         return {"ssl": True}
 
 
-# In ambienti con un pooler esterno come pgBouncer (comune in Supabase),
-# è raccomandato disabilitare il pooling di SQLAlchemy per evitare conflitti.
-# NullPool crea e distrugge le connessioni per ogni operazione.
+# Ottimizzazione per Supabase: viene utilizzato NullPool quando un pooler esterno
+# (come pgBouncer) è attivo, per evitare conflitti nella gestione delle connessioni.
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
@@ -68,6 +66,7 @@ engine = create_async_engine(
     poolclass=NullPool,
 )
 
+# Factory per le sessioni asincrone
 SessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -76,18 +75,19 @@ SessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Dependency per ottenere una sessione del database asincrona.
+    Garantisce che il fuso orario della sessione sia impostato su UTC.
+    """
     async with SessionLocal() as session:
-        # Forza il fuso orario della sessione a UTC.
-        # Questo garantisce che i timestamp "naive" inviati da Python (che non hanno fuso orario)
-        # vengano interpretati come UTC quando inseriti in una colonna TIMESTAMPTZ,
-        # e che le funzioni del database operino in modo coerente.
         await session.execute(text("SET TIME ZONE 'UTC'"))
         yield session
 
 
-# Utilità opzionali
-
 async def check_connection() -> bool:
+    """
+    Verifica se la connessione al database è attiva.
+    """
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
@@ -97,4 +97,7 @@ async def check_connection() -> bool:
 
 
 async def dispose_engine() -> None:
+    """
+    Chiude correttamente l'engine SQLAlchemy.
+    """
     await engine.dispose()

@@ -1,4 +1,4 @@
-# app/Schemas/auth_session.py
+# app/Schemas/supabase_session.py
 
 from __future__ import annotations
 from typing import Any, Dict, Optional
@@ -6,11 +6,11 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # ───────────── Ingressi ─────────────
 
-class LoginInput(BaseModel):
+class SupabaseLoginInput(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
 
-class RegisterInput(BaseModel):
+class SupabaseRegisterInput(BaseModel):
     name: str = Field(..., min_length=2)
     email: EmailStr
     password: str = Field(min_length=8)
@@ -27,55 +27,55 @@ class RegisterInput(BaseModel):
 
 # ───────────── Uscite ─────────────
 
-class LoginResponse(BaseModel):
+class SupabaseLoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: Optional[int] = None
     refresh_token: Optional[str] = None
     user: Dict[str, Any]
 
-class RegisterResponse(BaseModel):
+class SupabaseRegisterResponse(BaseModel):
     user_id: Optional[str] = None
     email: Optional[str] = None
     user: Dict[str, Any]
     status: str = "registered"
 
-class LogoutResponse(BaseModel):
+class SupabaseLogoutResponse(BaseModel):
     ok: bool = True
 
 # ───────────── MFA ─────────────
 
-class LoginMfaChallenge(BaseModel):
+class SupabaseLoginMfaChallenge(BaseModel):
     status: str = "mfa_required"
     access_token: str # Il token AAL1 da usare per la verifica
     factor_id: str
     challenge_id: str
 
-class VerifyMfaInput(BaseModel):
+class SupabaseVerifyMfaInput(BaseModel):
     access_token: str
     factor_id: str
     challenge_id: str
     code: str = Field(..., description="Codice OTP (One-Time Password)")
 
-class VerifyMfaResponse(BaseModel):
+class SupabaseVerifyMfaResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: Optional[int] = None
     refresh_token: Optional[str] = None
     user: Dict[str, Any]
 
-class TotpEnrollInput(BaseModel):
+class SupabaseTotpEnrollInput(BaseModel):
     friendly_name: Optional[str] = Field(None, description="Nome amichevole per il fattore MFA, es. 'Mio Telefono'")
 
-class TotpEnrollResponse(BaseModel):
+class SupabaseTotpEnrollResponse(BaseModel):
     factor_id: str
     secret: str
     otpauth_uri: str
     qr_code: str # SVG string
     challenge_id: str
 
-class ListFactorsResponse(BaseModel):
+class SupabaseListFactorsResponse(BaseModel):
     factors: list[Dict[str, Any]]
 
-class MfaDisableInput(BaseModel):
+class SupabaseMfaDisableInput(BaseModel):
     code: str = Field(..., description="Codice OTP (One-Time Password) per confermare la disattivazione")

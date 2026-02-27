@@ -1,4 +1,4 @@
-# app/Router/auth.py
+# app/Router/supabase_auth.py
 from __future__ import annotations
 
 from uuid import UUID
@@ -7,8 +7,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.Infrastructure.db_supabase import get_db
-from app.Services.jwt_service import get_jwks, validate_token_local
-from app.Repositories.user_role_repository import UserRoleRepository
+from app.Services.supabase_jwt_service import get_jwks, validate_token_local
+from app.Repositories.user_supabase_role_repository import UserSupabaseRoleRepository
 
 bearer = HTTPBearer(auto_error=True)
 
@@ -30,7 +30,7 @@ async def get_current_claims(
 def require_roles(roles: list[str]):
     """
     Dipendenza che conferma che l'utente autenticato abbia ALMENO uno dei ruoli richiesti.
-    I ruoli sono nella tua tabella 'public.roles' via tabella ponte 'public.user_roles'.
+    I ruoli sono nella tua tabella 'public.roles' via tabella ponte 'public.user_supabase_roles'.
     """
     async def dep(
         claims=Depends(get_current_claims),
@@ -45,7 +45,7 @@ def require_roles(roles: list[str]):
         except Exception:
             raise HTTPException(status_code=401, detail="sub non è un UUID valido")
 
-        repo = UserRoleRepository(db)
+        repo = UserSupabaseRoleRepository(db)
         for r in roles:
             if await repo.user_has_role(user_uuid, r):
                 return claims
