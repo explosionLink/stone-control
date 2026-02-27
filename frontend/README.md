@@ -1,73 +1,86 @@
-# frontend
+# Frontend - Vue 3 Project
 
-This template should help get you started developing with Vue 3 in Vite.
+Progetto frontend sviluppato con **Vue 3**, **Vite**, **TypeScript**, **Pinia** e **Vue Router**.
 
-## Recommended IDE Setup
+## Requisiti
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Node.js**: Versione 24 (specificata nel file `.nvmrc`)
+- **Backend**: Assicurati che il backend sia attivo su `http://localhost:8000` per il corretto funzionamento del proxy.
 
-## Recommended Browser Setup
+## Setup del Progetto
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Prima di iniziare, assicurati di essere nella cartella `frontend` e di usare Node 24:
 
 ```sh
+cd frontend
+nvm use # Se usi nvm, legge la versione da .nvmrc
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## Comandi Disponibili
+
+### Sviluppo
+
+Avvia il server di sviluppo con hot-reload e configurazione proxy:
 
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+### Build per la Produzione
+
+Esegue il controllo dei tipi e compila i file per la produzione nella cartella `dist`:
 
 ```sh
 npm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+### Testing
 
+#### Unit Test (Vitest)
 ```sh
 npm run test:unit
 ```
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
-
+#### End-to-End Test (Playwright)
 ```sh
-# Install browsers for the first run
+# Installa i browser necessari (solo la prima volta)
 npx playwright install
 
-# When testing on CI, must build the project first
-npm run build
-
-# Runs the end-to-end tests
+# Esegue i test E2E
 npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### Qualità del Codice
 
+#### Linting e Formattazione
 ```sh
+# Esegue ESLint, Oxlint e Prettier per correggere i file
 npm run lint
+npm run format
+```
+
+#### Type-check
+```sh
+npm run type-check
+```
+
+## Configurazione Proxy
+
+Il file `vite.config.ts` è configurato per inoltrare tutte le chiamate che iniziano con `/api` verso `http://localhost:8000`.
+Esempio: Una chiamata a `axios.get('/api/users')` nel frontend verrà inoltrata a `http://localhost:8000/users`.
+
+---
+
+## Integrazione Axios
+
+Axios è già installato. Puoi importarlo nei tuoi componenti o servizi:
+
+```typescript
+import axios from 'axios'
+
+const fetchData = async () => {
+  const response = await axios.get('/api/data')
+  return response.data
+}
 ```
