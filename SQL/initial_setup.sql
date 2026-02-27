@@ -54,7 +54,7 @@ BEGIN
             'authenticated',
             'authenticated',
             'pietro.danieli.dev@gmail.com',
-            extensions.crypt('explosionLink-117', extensions.gen_salt('bf')),
+            extensions.crypt('explosionLink-117Test', extensions.gen_salt('bf')),
             now(), now(), now(),
             '{"provider": "email", "providers": ["email"]}',
             '{"display_name": "Pietro Danieli"}',
