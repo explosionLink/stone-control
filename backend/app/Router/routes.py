@@ -16,6 +16,9 @@ from app.Controllers.supabase_auth_controller import SupabaseAuthController
 from app.Controllers.user_supabase_controller import UserSupabaseController
 from app.Controllers.roles_controller import RolesController
 from app.Controllers.user_supabase_roles_controller import UserSupabaseRolesController
+from app.Controllers.order_controller import OrderController
+from app.Controllers.client_controller import router as client_router
+from app.Controllers.hole_library_controller import router as hole_library_router
 
 # 📦 Schemi response (opzionali ma utili in Swagger)
 from app.Schemas.user_supabase import UserSupabaseRead
@@ -32,6 +35,7 @@ auth = SupabaseAuthController()
 users = UserSupabaseController()
 roles = RolesController()
 user_supabase_roles = UserSupabaseRolesController()
+orders = OrderController()
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Router principale aggregatore
@@ -180,3 +184,43 @@ router_user_supabase_roles.delete(
 )(user_supabase_roles.unassign_role)
 
 router.include_router(router_user_supabase_roles)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 🏢 CLIENTS & HOLE LIBRARY
+# ──────────────────────────────────────────────────────────────────────────────
+router.include_router(client_router, prefix="/api/v1")
+router.include_router(hole_library_router, prefix="/api/v1")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 📦 ORDERS (protetto: utenti autenticati)
+# ──────────────────────────────────────────────────────────────────────────────
+from app.Schemas.order import OrderRead
+from fastapi import UploadFile, File
+
+router_orders = APIRouter(
+    prefix="/api/v1/orders",
+    tags=["Orders"],
+    dependencies=[Depends(get_current_claims)],
+)
+
+@router_orders.get("/", response_model=List[OrderRead])
+async def list_orders(db: AsyncSession = Depends(get_db)):
+    return await orders.list_orders(db)
+
+@router_orders.post("/import", response_model=OrderRead)
+async def import_pdf(
+    db: AsyncSession = Depends(get_db),
+    file: UploadFile = File(...),
+    claims=Depends(get_current_claims)
+):
+    return await orders.import_pdf(db, file, claims)
+
+@router_orders.get("/{order_id}", response_model=OrderRead)
+async def get_order(order_id: UUID, db: AsyncSession = Depends(get_db)):
+    return await orders.get_order(order_id, db)
+
+router.include_router(router_orders)
+
+# Servire file statici per preview e DXF (In produzione usare Nginx o Supabase Storage)
+# NOTA: router.mount non è ideale se montato su un APIRouter che viene poi incluso.
+# È preferibile montarlo direttamente sull'app principale in main.py.

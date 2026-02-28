@@ -81,3 +81,8 @@ BEGIN
     VALUES (new_user_id, admin_role_id)
     ON CONFLICT (user_id, role_id) DO NOTHING;
 END $$;
+
+-- 5. Creazione Cliente Veneta Cucine
+INSERT INTO public.clients (id, name, code)
+VALUES ('e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Veneta Cucine', 'VENETA_CUCINE')
+ON CONFLICT (code) DO NOTHING;
