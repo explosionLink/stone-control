@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     DB_SSL_VERIFY: bool = True
 
     DATABASE_URL: Optional[str] = Field(default=None)
+    DATABASE_ALEMBIC_URL: Optional[str] = Field(default=None)
     DB_HOST: Optional[str] = None
     DB_NAME: Optional[str] = None
     DB_USER: Optional[str] = None
@@ -37,8 +38,10 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_KEY: str # Secret key for backend/admin operations
     AUTH_AUTO_CONFIRM_DEV: bool = True
 
-    def assemble_db_url(self) -> str:
-        url = self.DATABASE_URL
+    def assemble_db_url(self, url: Optional[str] = None) -> str:
+        if url is None:
+            url = self.DATABASE_URL
+
         if url:
             url = url.strip()
             # Forza l'uso del driver asyncpg

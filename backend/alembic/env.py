@@ -32,7 +32,9 @@ from app.Models.hole import Hole
 config = context.config
 
 # Sovrascrive l'URL del database con quello delle impostazioni
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Diamo priorità a DATABASE_ALEMBIC_URL se presente
+db_url = settings.assemble_db_url(settings.DATABASE_ALEMBIC_URL) if settings.DATABASE_ALEMBIC_URL else settings.DATABASE_URL
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
