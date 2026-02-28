@@ -35,28 +35,15 @@ from app.Models.hole import Hole
 def _make_ssl_context() -> dict:
     """
     Configura il contesto SSL per la connessione al database.
-    - Se l'URL utilizza asyncpg, viene costruito un SSLContext che utilizza il bundle CA di 'certifi'.
-    - In ambienti non di produzione, se DB_SSL_VERIFY è disabilitato, la verifica viene saltata.
+    Supabase richiede SSL attivo. Usiamo 'require' come valore predefinito
+    che è compatibile con asyncpg tramite SQLAlchemy.
     """
     if "+asyncpg" not in settings.DATABASE_URL:
         return {}
 
-    # Bypass della verifica SSL (solo per sviluppo)
-    if settings.ENV != "prod" and not settings.DB_SSL_VERIFY:
-        # Per asyncpg, passare ssl=False disabilita completamente SSL
-        return {"ssl": False}
-
-    # Verifica stretta utilizzando certifi
-    try:
-        import certifi
-        cafile = certifi.where()
-        ctx = ssl.create_default_context(cafile=cafile)
-        if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
-            ctx.minimum_version = ssl.TLSVersion.TLSv1_2
-        return {"ssl": ctx}
-    except Exception:
-        # Fallback all'uso del trust store di sistema
-        return {"ssl": True}
+    # Per asyncpg, passare ssl="require" è il modo più semplice e compatibile
+    # confermato funzionante con Supabase Session Pooler.
+    return {"ssl": "require"}
 
 
 # Ottimizzazione per Supabase: viene utilizzato NullPool quando un pooler esterno

@@ -1,11 +1,11 @@
 # app/config.py
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 # Caricamento esplicito del file .env per garantire che le variabili siano disponibili
 # indipendentemente da come viene avviato il processo (es. Alembic)
-load_dotenv(os.path.join(os.getcwd(), ".env"))
-load_dotenv(os.path.join(os.getcwd(), "..", ".env"))
+dotenv_path = find_dotenv()
+load_dotenv(dotenv_path)
 
 from typing import Optional, List
 from urllib.parse import quote_plus
