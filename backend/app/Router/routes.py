@@ -222,5 +222,5 @@ async def get_order(order_id: UUID, db: AsyncSession = Depends(get_db)):
 router.include_router(router_orders)
 
 # Servire file statici per preview e DXF (In produzione usare Nginx o Supabase Storage)
-from fastapi.staticfiles import StaticFiles
-router.mount("/outputs", StaticFiles(directory="backend/outputs"), name="outputs")
+# NOTA: router.mount non è ideale se montato su un APIRouter che viene poi incluso.
+# È preferibile montarlo direttamente sull'app principale in main.py.

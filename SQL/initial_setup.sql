@@ -86,6 +86,3 @@ END $$;
 INSERT INTO public.clients (id, name, code)
 VALUES ('e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Veneta Cucine', 'VENETA_CUCINE')
 ON CONFLICT (code) DO NOTHING;
-
--- 6. Libreria Fori Standard
--- 6. Libreria Fori Standard (al momento vuota come richiesto)

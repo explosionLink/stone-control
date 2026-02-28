@@ -33,16 +33,30 @@ class Settings(BaseSettings):
     AUTH_AUTO_CONFIRM_DEV: bool = True
 
     def assemble_db_url(self) -> str:
+        url = self.DATABASE_URL
+        if not url:
+            if not (self.DB_HOST and self.DB_NAME and self.DB_USER and self.DB_PASS):
+                raise ValueError("Devi impostare DATABASE_URL oppure tutte le variabili DB_*")
+            from urllib.parse import quote_plus
+            user = self.DB_USER
+            pwd = quote_plus(self.DB_PASS)
+            url = f"postgresql+asyncpg://{user}:{pwd}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+        # Pulizia URL per asyncpg (non supporta sslmode nella query string)
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        u = urlparse(url)
+        if u.query:
+            qs = parse_qs(u.query)
+            qs.pop('sslmode', None)
+            qs.pop('ssl', None)
+            new_query = urlencode(qs, doseq=True)
+            url = urlunparse(u._replace(query=new_query))
+
+        return url
+
+    def get_old_assemble_logic(self) -> str:
+        # Keep this for compatibility if needed elsewhere
         if self.DATABASE_URL:
-            # asyncpg non supporta parametri come sslmode nella query string
-            from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-            u = urlparse(self.DATABASE_URL)
-            if u.query:
-                qs = parse_qs(u.query)
-                qs.pop('sslmode', None)
-                qs.pop('ssl', None)
-                new_query = urlencode(qs, doseq=True)
-                return urlunparse(u._replace(query=new_query))
             return self.DATABASE_URL
         if not (self.DB_HOST and self.DB_NAME and self.DB_USER and self.DB_PASS):
             raise ValueError("Devi impostare DATABASE_URL oppure tutte le variabili DB_*")

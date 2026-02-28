@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 import pdfplumber
 import ezdxf
+from PIL import Image
 from shapely.geometry import LineString, Polygon as ShapelyPolygon, Point as ShapelyPoint
 from shapely.ops import unary_union, polygonize, snap, transform
 from .base_parser import BaseParser
@@ -256,5 +257,5 @@ class VenetaCucineParser(BaseParser):
     def save_preview(self, page, path: Path, is_mirrored: bool):
         im = page.to_image(resolution=150).original
         if is_mirrored:
-            im = im.transpose(method=0) # FLIP_LEFT_RIGHT is 0 in some PIL versions or use Image.FLIP_LEFT_RIGHT
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
         im.save(str(path))

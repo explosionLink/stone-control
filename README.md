@@ -53,9 +53,9 @@ cd backend
 # Su Linux/macOS (bash):
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 # Su Windows (PowerShell):
-$env:PYTHONPATH += ";$PWD"
+$env:PYTHONPATH = "$PWD"
 # Su Windows (CMD):
-set PYTHONPATH=%PYTHONPATH%;%cd%
+set PYTHONPATH=%cd%
 
 alembic upgrade head
 ```

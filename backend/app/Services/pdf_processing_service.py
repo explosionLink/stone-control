@@ -9,8 +9,10 @@ from .parsers.base_parser import BaseParser
 
 class PDFProcessingService:
     def __init__(self, imports_dir: str = "imports", outputs_dir: str = "outputs"):
-        self.imports_dir = Path(imports_dir)
-        self.outputs_dir = Path(outputs_dir)
+        # Se i path sono relativi, li rendiamo assoluti rispetto alla root del backend
+        base_path = Path(__file__).parent.parent.parent
+        self.imports_dir = base_path / imports_dir if not Path(imports_dir).is_absolute() else Path(imports_dir)
+        self.outputs_dir = base_path / outputs_dir if not Path(outputs_dir).is_absolute() else Path(outputs_dir)
         self.imports_dir.mkdir(parents=True, exist_ok=True)
         self.outputs_dir.mkdir(parents=True, exist_ok=True)
 

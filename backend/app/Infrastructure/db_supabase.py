@@ -43,7 +43,8 @@ def _make_ssl_context() -> dict:
 
     # Bypass della verifica SSL (solo per sviluppo)
     if settings.ENV != "prod" and not settings.DB_SSL_VERIFY:
-        return {}
+        # Per asyncpg, passare ssl=False disabilita completamente SSL
+        return {"ssl": False}
 
     # Verifica stretta utilizzando certifi
     try:
