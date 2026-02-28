@@ -34,6 +34,15 @@ class Settings(BaseSettings):
 
     def assemble_db_url(self) -> str:
         if self.DATABASE_URL:
+            # asyncpg non supporta parametri come sslmode nella query string
+            from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+            u = urlparse(self.DATABASE_URL)
+            if u.query:
+                qs = parse_qs(u.query)
+                qs.pop('sslmode', None)
+                qs.pop('ssl', None)
+                new_query = urlencode(qs, doseq=True)
+                return urlunparse(u._replace(query=new_query))
             return self.DATABASE_URL
         if not (self.DB_HOST and self.DB_NAME and self.DB_USER and self.DB_PASS):
             raise ValueError("Devi impostare DATABASE_URL oppure tutte le variabili DB_*")

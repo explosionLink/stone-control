@@ -50,7 +50,13 @@ Assicurati di essere nella cartella `backend/`:
 cd backend
 
 # Esegui le migrazioni per creare le tabelle
-export PYTHONPATH=$PYTHONPATH:$(pwd) # Su Windows: set PYTHONPATH=%PYTHONPATH%;%cd%
+# Su Linux/macOS (bash):
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+# Su Windows (PowerShell):
+$env:PYTHONPATH += ";$PWD"
+# Su Windows (CMD):
+set PYTHONPATH=%PYTHONPATH%;%cd%
+
 alembic upgrade head
 ```
 

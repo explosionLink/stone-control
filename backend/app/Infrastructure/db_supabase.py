@@ -43,10 +43,7 @@ def _make_ssl_context() -> dict:
 
     # Bypass della verifica SSL (solo per sviluppo)
     if settings.ENV != "prod" and not settings.DB_SSL_VERIFY:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        return {"ssl": ctx}
+        return {}
 
     # Verifica stretta utilizzando certifi
     try:
