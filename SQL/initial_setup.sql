@@ -81,3 +81,17 @@ BEGIN
     VALUES (new_user_id, admin_role_id)
     ON CONFLICT (user_id, role_id) DO NOTHING;
 END $$;
+
+-- 5. Creazione Cliente Veneta Cucine
+INSERT INTO public.clients (id, name, code)
+VALUES ('e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Veneta Cucine', 'VENETA_CUCINE')
+ON CONFLICT (code) DO NOTHING;
+
+-- 6. Libreria Fori Standard
+INSERT INTO public.hole_library (id, code, name, diameter_mm, depth_mm)
+VALUES
+    (gen_random_uuid(), 'RUBINETTO_35', 'Foro Rubinetto Ø35', 35, 20),
+    (gen_random_uuid(), 'BUSSOLA_12', 'Bussola per Sottotop Ø12', 12, 15),
+    (gen_random_uuid(), 'P_COTTURA', 'Foro Piano Cottura', NULL, 20),
+    (gen_random_uuid(), 'LAVELLO_SOTTO', 'Foro Lavello Sottotop', NULL, 20)
+ON CONFLICT (code) DO NOTHING;

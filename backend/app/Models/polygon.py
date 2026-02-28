@@ -22,6 +22,10 @@ class Polygon(Base):
     height_mm: Mapped[float] = mapped_column(Float)
     dxf_path: Mapped[str] = mapped_column(String(255), nullable=True)
     preview_path: Mapped[str] = mapped_column(String(255), nullable=True)
+    is_mirrored: Mapped[bool] = mapped_column(default=False)
+    is_machining: Mapped[bool] = mapped_column(default=False)
+    material: Mapped[str] = mapped_column(String(128), nullable=True)
+    thickness_mm: Mapped[float] = mapped_column(Float, nullable=True)
 
     order: Mapped[Order] = relationship(back_populates="polygons")
     holes: Mapped[List[Hole]] = relationship(back_populates="polygon", cascade="all, delete-orphan")

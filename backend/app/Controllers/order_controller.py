@@ -51,13 +51,20 @@ class OrderController:
         # 3. Salvataggio nel DB
         user_id = UUID(claims["sub"]) if claims and "sub" in claims else None
 
+        # Default client for now: Veneta Cucine
+        from app.Models.client import Client
+        stmt_client = select(Client).where(Client.code == "VENETA_CUCINE")
+        res_client = await db.execute(stmt_client)
+        client = res_client.scalar_one_or_none()
+        client_id = client.id if client else None
+
         # Cerca se l'ordine esiste già o creane uno nuovo
         stmt = select(Order).where(Order.code == file_id)
         existing = await db.execute(stmt)
         order = existing.scalar_one_or_none()
 
         if not order:
-            order = Order(code=file_id, user_id=user_id)
+            order = Order(code=file_id, user_id=user_id, client_id=client_id)
             db.add(order)
             await db.flush()
         else:
@@ -71,7 +78,11 @@ class OrderController:
                 width_mm=res["width_mm"],
                 height_mm=res["height_mm"],
                 dxf_path=res["dxf_path"],
-                preview_path=res["preview_path"]
+                preview_path=res["preview_path"],
+                is_mirrored=res.get("is_mirrored", False),
+                is_machining=res.get("is_machining", False),
+                material=res.get("material"),
+                thickness_mm=res.get("thickness_mm")
             )
             db.add(poly)
             await db.flush()
@@ -82,8 +93,10 @@ class OrderController:
                     type=h_res["type"],
                     x_mm=h_res["x_mm"],
                     y_mm=h_res["y_mm"],
-                    width_mm=h_res["width_mm"],
-                    height_mm=h_res["height_mm"]
+                    width_mm=h_res.get("width_mm"),
+                    height_mm=h_res.get("height_mm"),
+                    diameter_mm=h_res.get("diameter_mm"),
+                    depth_mm=h_res.get("depth_mm")
                 )
                 db.add(hole)
 

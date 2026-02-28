@@ -17,6 +17,8 @@ from app.Controllers.user_supabase_controller import UserSupabaseController
 from app.Controllers.roles_controller import RolesController
 from app.Controllers.user_supabase_roles_controller import UserSupabaseRolesController
 from app.Controllers.order_controller import OrderController
+from app.Controllers.client_controller import router as client_router
+from app.Controllers.hole_library_controller import router as hole_library_router
 
 # 📦 Schemi response (opzionali ma utili in Swagger)
 from app.Schemas.user_supabase import UserSupabaseRead
@@ -182,6 +184,12 @@ router_user_supabase_roles.delete(
 )(user_supabase_roles.unassign_role)
 
 router.include_router(router_user_supabase_roles)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 🏢 CLIENTS & HOLE LIBRARY
+# ──────────────────────────────────────────────────────────────────────────────
+router.include_router(client_router, prefix="/api/v1")
+router.include_router(hole_library_router, prefix="/api/v1")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 📦 ORDERS (protetto: utenti autenticati)

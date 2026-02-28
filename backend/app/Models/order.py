@@ -17,6 +17,8 @@ class Order(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     code: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     user_id: Mapped[UUID] = mapped_column(ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=True)
+    client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    client: Mapped[Client] = relationship(back_populates="orders")
     polygons: Mapped[List[Polygon]] = relationship(back_populates="order", cascade="all, delete-orphan")

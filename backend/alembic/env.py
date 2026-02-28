@@ -18,6 +18,11 @@ from app.Infrastructure.db_supabase import Base
 from app.Models.role import Role
 from app.Models.user_supabase_role import UserSupabaseRole
 from app.Models.user_supabase import UserSupabase
+from app.Models.client import Client
+from app.Models.hole_library import HoleLibrary
+from app.Models.order import Order
+from app.Models.polygon import Polygon
+from app.Models.hole import Hole
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

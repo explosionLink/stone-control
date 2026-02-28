@@ -10,8 +10,11 @@ class HoleBase(BaseModel):
     type: Optional[str] = None
     x_mm: float
     y_mm: float
-    width_mm: float
-    height_mm: float
+    width_mm: Optional[float] = None
+    height_mm: Optional[float] = None
+    diameter_mm: Optional[float] = None
+    depth_mm: Optional[float] = None
+    hole_library_id: Optional[UUID] = None
 
 class HoleRead(HoleBase):
     id: UUID
@@ -23,6 +26,10 @@ class PolygonBase(BaseModel):
     height_mm: float
     dxf_path: Optional[str] = None
     preview_path: Optional[str] = None
+    is_mirrored: bool = False
+    is_machining: bool = False
+    material: Optional[str] = None
+    thickness_mm: Optional[float] = None
 
 class PolygonRead(PolygonBase):
     id: UUID
@@ -31,6 +38,7 @@ class PolygonRead(PolygonBase):
 
 class OrderBase(BaseModel):
     code: str
+    client_id: Optional[UUID] = None
 
 class OrderRead(OrderBase):
     id: UUID
