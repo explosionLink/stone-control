@@ -82,6 +82,7 @@ class Settings(BaseSettings):
         """Stampa informazioni diagnostiche sulla configurazione (oscurando i segreti)."""
         db_url = self.assemble_db_url()
         from urllib.parse import urlparse
+        import socket
         u = urlparse(db_url)
         sanitized_url = f"{u.scheme}://{u.username}:****@{u.hostname}:{u.port}{u.path}" if u.hostname else "N/A"
 
@@ -90,6 +91,16 @@ class Settings(BaseSettings):
         print(f"ENV: {self.ENV}")
         print(f"DATABASE_URL (sanitizzata): {sanitized_url}")
         print(f"SUPABASE_URL: {self.SUPABASE_URL}")
+
+        if u.hostname:
+            try:
+                # Verifica se l'host è risolvibile (IPv4 o IPv6)
+                socket.getaddrinfo(u.hostname, u.port or 5432)
+                print(f"DNS Check: Host risolvibile correttamente.")
+            except socket.gaierror:
+                print(f"DNS Check: !!! ERRORE !!! L'host '{u.hostname}' non è risolvibile.")
+                print(f"SUGGERIMENTO: Se stai usando Supabase, usa l'host del 'Connection Pooler' (es. *.pooler.supabase.com) invece dell'host diretto.")
+
         print(f"---------------------------")
 
     @property

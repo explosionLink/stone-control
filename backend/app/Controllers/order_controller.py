@@ -17,7 +17,8 @@ import shutil
 
 class OrderController:
     def __init__(self):
-        self.pdf_svc = PDFProcessingService(imports_dir="backend/imports", outputs_dir="backend/outputs")
+        # I path vengono resi assoluti all'interno di PDFProcessingService
+        self.pdf_svc = PDFProcessingService(imports_dir="imports", outputs_dir="outputs")
 
     async def list_orders(
         self,
