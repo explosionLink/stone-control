@@ -25,6 +25,9 @@ class Base(DeclarativeBase):
 from app.Models.user_supabase import UserSupabase
 from app.Models.role import Role
 from app.Models.user_supabase_role import UserSupabaseRole
+from app.Models.order import Order
+from app.Models.polygon import Polygon
+from app.Models.hole import Hole
 
 
 def _make_ssl_context() -> dict:
