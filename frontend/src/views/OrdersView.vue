@@ -41,8 +41,11 @@ const fetchOrders = async () => {
   try {
     const response = await axios.get('/api/v1/orders/');
     orders.value = response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Errore nel recupero ordini:', error);
+    if (error.response?.status === 401) {
+      alert('Sessione scaduta o non valida. Effettua nuovamente il login.');
+    }
   }
 };
 
