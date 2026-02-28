@@ -5,7 +5,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # Cerca il file .env sia nella cartella corrente che in quella superiore (root del progetto)
+    model_config = SettingsConfigDict(
+        env_file=(".env", "../.env"),
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
     APP_NAME: str = "My FastAPI App"
     ENV: str = "dev"
@@ -34,6 +39,14 @@ class Settings(BaseSettings):
 
     def assemble_db_url(self) -> str:
         url = self.DATABASE_URL
+        if url:
+            url = url.strip()
+            # Forza l'uso del driver asyncpg
+            if url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+
         if not url:
             if not (self.DB_HOST and self.DB_NAME and self.DB_USER and self.DB_PASS):
                 raise ValueError("Devi impostare DATABASE_URL oppure tutte le variabili DB_*")
@@ -64,6 +77,20 @@ class Settings(BaseSettings):
         from urllib.parse import quote_plus
         pwd = quote_plus(self.DB_PASS)
         return f"postgresql+asyncpg://{user}:{pwd}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    def debug_print_config(self):
+        """Stampa informazioni diagnostiche sulla configurazione (oscurando i segreti)."""
+        db_url = self.assemble_db_url()
+        from urllib.parse import urlparse
+        u = urlparse(db_url)
+        sanitized_url = f"{u.scheme}://{u.username}:****@{u.hostname}:{u.port}{u.path}" if u.hostname else "N/A"
+
+        print(f"--- Configuration Debug ---")
+        print(f"APP_NAME: {self.APP_NAME}")
+        print(f"ENV: {self.ENV}")
+        print(f"DATABASE_URL (sanitizzata): {sanitized_url}")
+        print(f"SUPABASE_URL: {self.SUPABASE_URL}")
+        print(f"---------------------------")
 
     @property
     def cors_origins_list(self) -> List[str]:

@@ -13,6 +13,9 @@ from alembic import context
 sys.path.append(os.getcwd())
 
 from app.Core.config import settings
+# Stampa diagnostica per aiutare l'utente a capire se Alembic sta usando i parametri corretti
+settings.debug_print_config()
+
 from app.Infrastructure.db_supabase import Base
 # Importa i modelli per registrarli nel metadata
 from app.Models.role import Role
