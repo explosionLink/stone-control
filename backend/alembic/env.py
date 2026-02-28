@@ -33,7 +33,13 @@ config = context.config
 
 # Sovrascrive l'URL del database con quello delle impostazioni
 # Diamo priorità a DATABASE_ALEMBIC_URL se presente
-db_url = settings.assemble_db_url(settings.DATABASE_ALEMBIC_URL) if settings.DATABASE_ALEMBIC_URL else settings.DATABASE_URL
+if settings.DATABASE_ALEMBIC_URL:
+    print("Alembic: Uso di DATABASE_ALEMBIC_URL per la migrazione.")
+    db_url = settings.assemble_db_url(settings.DATABASE_ALEMBIC_URL)
+else:
+    print("Alembic: Uso di DATABASE_URL per la migrazione.")
+    db_url = settings.DATABASE_URL
+
 config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.

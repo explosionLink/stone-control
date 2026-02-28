@@ -1,4 +1,12 @@
 # app/config.py
+import os
+from dotenv import load_dotenv
+
+# Caricamento esplicito del file .env per garantire che le variabili siano disponibili
+# indipendentemente da come viene avviato il processo (es. Alembic)
+load_dotenv(os.path.join(os.getcwd(), ".env"))
+load_dotenv(os.path.join(os.getcwd(), "..", ".env"))
+
 from typing import Optional, List
 from urllib.parse import quote_plus
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -83,26 +91,30 @@ class Settings(BaseSettings):
 
     def debug_print_config(self):
         """Stampa informazioni diagnostiche sulla configurazione (oscurando i segreti)."""
-        db_url = self.assemble_db_url()
-        from urllib.parse import urlparse
         import socket
-        u = urlparse(db_url)
-        sanitized_url = f"{u.scheme}://{u.username}:****@{u.hostname}:{u.port}{u.path}" if u.hostname else "N/A"
+        from urllib.parse import urlparse
+
+        def get_sanitized(url):
+            if not url: return "N/A"
+            u = urlparse(self.assemble_db_url(url))
+            return f"{u.scheme}://{u.username}:****@{u.hostname}:{u.port}{u.path}"
 
         print(f"--- Configuration Debug ---")
         print(f"APP_NAME: {self.APP_NAME}")
         print(f"ENV: {self.ENV}")
-        print(f"DATABASE_URL (sanitizzata): {sanitized_url}")
+        print(f"DATABASE_URL: {get_sanitized(self.DATABASE_URL)}")
+        print(f"DATABASE_ALEMBIC_URL: {get_sanitized(self.DATABASE_ALEMBIC_URL)}")
         print(f"SUPABASE_URL: {self.SUPABASE_URL}")
 
-        if u.hostname:
-            try:
-                # Verifica se l'host è risolvibile (IPv4 o IPv6)
-                socket.getaddrinfo(u.hostname, u.port or 5432)
-                print(f"DNS Check: Host risolvibile correttamente.")
-            except socket.gaierror:
-                print(f"DNS Check: !!! ERRORE !!! L'host '{u.hostname}' non è risolvibile.")
-                print(f"SUGGERIMENTO: Se stai usando Supabase, usa l'host del 'Connection Pooler' (es. *.pooler.supabase.com) invece dell'host diretto.")
+        for name, url_val in [("App DB", self.DATABASE_URL), ("Alembic DB", self.DATABASE_ALEMBIC_URL)]:
+            if url_val:
+                u = urlparse(self.assemble_db_url(url_val))
+                if u.hostname:
+                    try:
+                        socket.getaddrinfo(u.hostname, u.port or 5432)
+                        print(f"DNS Check ({name}): Host '{u.hostname}' risolvibile.")
+                    except socket.gaierror:
+                        print(f"DNS Check ({name}): !!! ERRORE !!! L'host '{u.hostname}' non è risolvibile.")
 
         print(f"---------------------------")
 
