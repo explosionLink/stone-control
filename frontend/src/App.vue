@@ -100,9 +100,8 @@ body {
 }
 
 .nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  width: 100%;
+  padding: 0 3%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -196,9 +195,8 @@ body {
 }
 
 .content-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  width: 100%;
+  padding: 0 3%;
 }
 
 .app-footer {
