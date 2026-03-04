@@ -50,43 +50,19 @@ const handleLogout = () => {
     </main>
 
     <footer class="app-footer">
-      <p>&copy; 2024 Stone Control - Gestione Ordini Marmi e Graniti</p>
+      <div class="footer-content">
+        <p>&copy; 2024 Stone Control - Gestione Ordini Marmi e Graniti</p>
+      </div>
     </footer>
   </div>
 </template>
-
-<style>
-/* Reset globale e stili base scuri */
-:root {
-  --bg-dark: #121212;
-  --bg-card: #1e1e1e;
-  --bg-nav: #181818;
-  --primary: #42b983;
-  --primary-hover: #3aa876;
-  --text-main: #e0e0e0;
-  --text-muted: #a0a0a0;
-  --border: #333;
-  --danger: #ff5252;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
-  -webkit-font-smoothing: antialiased;
-}
-
-* {
-  box-sizing: border-box;
-}
-</style>
 
 <style scoped>
 .app-layout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
 }
 
 .app-header {
@@ -95,8 +71,8 @@ body {
   z-index: 1000;
   background-color: var(--bg-nav);
   border-bottom: 1px solid var(--border);
-  padding: 0.75rem 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 0.85rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .nav-container {
@@ -121,13 +97,13 @@ body {
 
 .logo-text {
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   letter-spacing: -0.5px;
 }
 
 .nav-links {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.75rem;
   align-items: center;
 }
 
@@ -135,20 +111,23 @@ body {
   color: var(--text-muted);
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s;
+  font-size: 1rem;
+  transition: all 0.2s;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }
 
 .nav-links a:hover,
 .nav-links a.router-link-active {
   color: var(--primary);
+  background-color: rgba(66, 185, 131, 0.05);
 }
 
 .user-menu {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-left: 1rem;
+  padding-left: 1.25rem;
   border-left: 1px solid var(--border);
 }
 
@@ -167,31 +146,35 @@ body {
   border: 1px solid var(--border);
   color: var(--text-muted);
   padding: 0.4rem 0.8rem;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   transition: all 0.2s;
 }
 
 .btn-logout:hover {
   border-color: var(--danger);
   color: var(--danger);
+  background-color: rgba(255, 82, 82, 0.05);
 }
 
 .btn-register {
   background-color: var(--primary);
   color: white !important;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem !important;
   border-radius: 6px;
 }
 
 .btn-register:hover {
   background-color: var(--primary-hover);
+  color: white !important;
 }
 
 .app-main {
   flex: 1;
-  padding: 2rem 0;
+  padding: 2.5rem 0;
+  width: 100%;
 }
 
 .content-container {
@@ -200,23 +183,36 @@ body {
 }
 
 .app-footer {
-  padding: 2rem;
-  text-align: center;
+  padding: 2.5rem 0;
   border-top: 1px solid var(--border);
   background-color: var(--bg-nav);
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
-@media (max-width: 768px) {
+.footer-content {
+  width: 100%;
+  padding: 0 3%;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
   .nav-container {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .nav-links {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .user-menu {
+    border-left: none;
+    padding-left: 0;
+    margin-top: 0.5rem;
   }
 }
 </style>
