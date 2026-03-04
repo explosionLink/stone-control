@@ -36,71 +36,167 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="login-view">
-    <div class="login-card">
-      <h1>Accesso Stone Control</h1>
-      <form @submit.prevent="handleLogin">
+  <div class="auth-view">
+    <div class="auth-card">
+      <div class="auth-header">
+        <span class="auth-icon">🔐</span>
+        <h1>Accedi a Stone Control</h1>
+        <p>Inserisci le tue credenziali per continuare</p>
+      </div>
+
+      <form @submit.prevent="handleLogin" class="auth-form">
         <div class="form-group">
           <label>Email</label>
-          <input v-model="email" type="email" required placeholder="Inserisci la tua email" />
+          <div class="input-wrapper">
+            <input v-model="email" type="email" required placeholder="tuo@email.com" />
+          </div>
         </div>
+
         <div class="form-group">
           <label>Password</label>
-          <input v-model="password" type="password" required placeholder="Inserisci la tua password" />
+          <div class="input-wrapper">
+            <input v-model="password" type="password" required placeholder="••••••••" />
+          </div>
         </div>
-        <div v-if="error" class="error-msg">{{ error }}</div>
-        <button type="submit" :disabled="loading">
-          {{ loading ? 'Accesso in corso...' : 'Accedi' }}
+
+        <div v-if="error" class="error-msg">
+          <span class="icon">⚠️</span> {{ error }}
+        </div>
+
+        <button type="submit" :disabled="loading" class="btn-submit">
+          {{ loading ? 'Accesso in corso...' : 'Entra' }}
         </button>
+
+        <div class="auth-footer">
+          Non hai un account? <router-link to="/register">Registrati ora</router-link>
+        </div>
       </form>
     </div>
   </div>
 </template>
 
 <style scoped>
-.login-view {
+.auth-view {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 60vh;
+  padding: 4rem 1rem;
+  animation: fadeIn 0.4s ease-out;
 }
-.login-card {
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  max-width: 420px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
-.form-group {
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-icon {
+  font-size: 2.5rem;
+  display: block;
   margin-bottom: 1rem;
 }
+
+.auth-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
-.form-group input {
+
+.input-wrapper input {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.2s;
 }
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+}
+
 .error-msg {
-  color: #e74c3c;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  background: rgba(231, 76, 60, 0.1);
+  color: #ff5252;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-button {
+
+.btn-submit {
   width: 100%;
   padding: 0.75rem;
-  background: #42b983;
+  background: var(--primary);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s;
 }
-button:disabled {
-  background: #a8d5c2;
+
+.btn-submit:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  background: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.auth-footer a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
 }
 </style>

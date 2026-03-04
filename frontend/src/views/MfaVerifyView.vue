@@ -11,7 +11,6 @@ const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-// Dati passati tramite state del router o query params
 const accessToken = ref('')
 const factorId = ref('')
 const challengeId = ref('')
@@ -47,32 +46,39 @@ const handleVerify = async () => {
 </script>
 
 <template>
-  <div class="mfa-verify-view">
-    <div class="mfa-card">
-      <h1>Verifica MFA</h1>
-      <p>Inserisci il codice di sicurezza generato dalla tua app di autenticazione.</p>
+  <div class="auth-view">
+    <div class="auth-card mfa-verify">
+      <div class="auth-header">
+        <span class="auth-icon">🛡️</span>
+        <h1>Verifica MFA</h1>
+        <p>Inserisci il codice di sicurezza dall'app Authenticator</p>
+      </div>
 
-      <form @submit.prevent="handleVerify">
-        <div class="form-group">
-          <label>Codice OTP</label>
-          <input
-            v-model="code"
-            type="text"
-            required
-            placeholder="000000"
-            maxlength="6"
-            pattern="\d{6}"
-            autofocus
-          />
+      <form @submit.prevent="handleVerify" class="auth-form">
+        <div class="form-group otp-group">
+          <label>Codice di Verifica</label>
+          <div class="otp-input-container">
+            <input
+              v-model="code"
+              type="text"
+              required
+              placeholder="000 000"
+              maxlength="6"
+              pattern="\d{6}"
+              autofocus
+            />
+          </div>
         </div>
 
-        <div v-if="error" class="error-msg">{{ error }}</div>
+        <div v-if="error" class="error-msg">
+          <span class="icon">⚠️</span> {{ error }}
+        </div>
 
-        <button type="submit" :disabled="loading || !code">
-          {{ loading ? 'Verifica in corso...' : 'Verifica e Accedi' }}
+        <button type="submit" :disabled="loading || !code" class="btn-submit">
+          {{ loading ? 'Verifica...' : 'Verifica e Accedi' }}
         </button>
 
-        <div class="back-link">
+        <div class="auth-footer">
           <router-link to="/login">Torna al login</router-link>
         </div>
       </form>
@@ -81,57 +87,85 @@ const handleVerify = async () => {
 </template>
 
 <style scoped>
-.mfa-verify-view {
+.auth-view {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 60vh;
+  padding: 4rem 1rem;
+  animation: fadeIn 0.4s ease-out;
 }
-.mfa-card {
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card {
   width: 100%;
   max-width: 400px;
-  padding: 2rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   text-align: center;
 }
-.mfa-card p {
-  color: #666;
-  margin-bottom: 1.5rem;
-}
-.form-group {
-  margin-bottom: 1.5rem;
-}
-.form-group input {
+
+.auth-header { margin-bottom: 2rem; }
+.auth-icon { font-size: 2.5rem; display: block; margin-bottom: 1rem; }
+.auth-header h1 { font-size: 1.5rem; color: white; margin-bottom: 0.5rem; }
+.auth-header p { color: var(--text-muted); font-size: 0.9rem; }
+
+.otp-group label { display: block; margin-bottom: 1rem; color: var(--text-muted); font-size: 0.85rem; }
+
+.otp-input-container input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-dark);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: white;
+  font-size: 2rem;
   text-align: center;
   letter-spacing: 0.5rem;
+  font-family: monospace;
+  transition: border-color 0.2s;
 }
+
+.otp-input-container input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 .error-msg {
-  color: #e74c3c;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-button {
-  width: 100%;
+  background: rgba(231, 76, 60, 0.1);
+  color: #ff5252;
   padding: 0.75rem;
-  background: #3498db;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--primary);
   color: white;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  border-radius: 10px;
   font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
 }
-button:disabled {
-  background: #bdc3c7;
-}
-.back-link {
-  margin-top: 1rem;
-}
+
+.btn-submit:hover { background: var(--primary-hover); }
+
+.auth-footer { margin-top: 1.5rem; font-size: 0.9rem; }
+.auth-footer a { color: var(--text-muted); text-decoration: none; }
+.auth-footer a:hover { color: white; }
 </style>
