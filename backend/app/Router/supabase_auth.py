@@ -11,6 +11,7 @@ from app.Services.supabase_jwt_service import get_jwks, validate_token_local
 from app.Repositories.user_supabase_role_repository import UserSupabaseRoleRepository
 
 bearer = HTTPBearer(auto_error=True)
+optional_bearer = HTTPBearer(auto_error=False)
 
 async def get_current_claims(
     request: Request,
@@ -25,6 +26,24 @@ async def get_current_claims(
     jwks = await get_jwks()
     payload = validate_token_local(token, jwks)
     return payload
+
+
+async def get_optional_claims(
+    creds: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
+):
+    """
+    Simile a get_current_claims, ma non lancia eccezioni se il token manca.
+    Ritorna None se il token non è presente o non è valido.
+    """
+    if not creds:
+        return None
+    try:
+        token = creds.credentials
+        jwks = await get_jwks()
+        payload = validate_token_local(token, jwks)
+        return payload
+    except Exception:
+        return None
 
 
 def require_roles(roles: list[str]):

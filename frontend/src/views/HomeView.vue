@@ -41,7 +41,6 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
 
 const fetchOrders = async () => {
-  if (!auth.isAuthenticated) return;
   try {
     const response = await axios.get('/api/v1/orders/');
     orders.value = response.data;
@@ -65,7 +64,7 @@ const handleUpload = async (event: Event) => {
     });
     fetchOrders();
   } catch (error) {
-    alert('Errore durante l\'importazione del PDF. Assicurati di essere loggato.');
+    alert('Errore durante l\'importazione del PDF.');
     console.error(error);
   } finally {
     uploading.value = false;
@@ -79,7 +78,6 @@ onMounted(fetchOrders);
   <div class="home-container">
     <section class="hero">
       <h1>Benvenuto nel Sistema Gestione Ordini</h1>
-      <p v-if="!auth.isAuthenticated">Accedi per importare e gestire i tuoi ordini Veneta Cucine.</p>
     </section>
 
     <div class="main-content">

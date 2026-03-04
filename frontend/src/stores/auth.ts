@@ -10,9 +10,9 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.token,
   },
   actions: {
-    async login(email: string, pass: string) {
+    async login(email: string, password: string) {
       try {
-        const res = await axios.post('/api/v1/auth/login', { email, pass })
+        const res = await axios.post('/api/v1/auth/login', { email, password })
         if (res.data.session) {
           this.token = res.data.session.access_token
           this.user = res.data.session.user
