@@ -16,7 +16,18 @@ const handleLogin = async () => {
   error.value = ''
   const res = await auth.login(email.value, password.value)
   if (res.success) {
-    router.push('/orders')
+    if (res.mfaRequired) {
+      router.push({
+        path: '/mfa-verify',
+        query: {
+          access_token: res.mfaData.access_token,
+          factor_id: res.mfaData.factor_id,
+          challenge_id: res.mfaData.challenge_id
+        }
+      })
+    } else {
+      router.push('/orders')
+    }
   } else {
     error.value = res.detail
   }

@@ -39,6 +39,8 @@ interface Order {
 const orders = ref<Order[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
+const isDragging = ref(false);
+const uploadStatus = ref<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
 
 const fetchOrders = async () => {
   try {
@@ -49,25 +51,46 @@ const fetchOrders = async () => {
   }
 };
 
-const handleUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-
+const uploadFile = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
 
   uploading.value = true;
+  uploadStatus.value = { message: 'Elaborazione del PDF in corso...', type: '' };
+
   try {
     await axios.post('/api/v1/orders/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    uploadStatus.value = { message: 'Importazione completata con successo!', type: 'success' };
     fetchOrders();
-  } catch (error) {
-    alert('Errore durante l\'importazione del PDF.');
+  } catch (error: any) {
+    uploadStatus.value = {
+      message: error.response?.data?.detail || 'Errore durante l\'importazione del PDF.',
+      type: 'error'
+    };
     console.error(error);
   } finally {
     uploading.value = false;
+    setTimeout(() => {
+      uploadStatus.value = { message: '', type: '' };
+    }, 5000);
+  }
+};
+
+const handleUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (file) await uploadFile(file);
+};
+
+const handleDrop = async (event: DragEvent) => {
+  isDragging.value = false;
+  const file = event.dataTransfer?.files[0];
+  if (file && file.type === 'application/pdf') {
+    await uploadFile(file);
+  } else if (file) {
+    uploadStatus.value = { message: 'Per favore, carica solo file PDF.', type: 'error' };
   }
 };
 
@@ -81,11 +104,28 @@ onMounted(fetchOrders);
     </section>
 
     <div class="main-content">
-      <div class="upload-section">
-        <input type="file" ref="fileInput" @change="handleUpload" accept=".pdf" style="display: none" />
-        <button class="btn-primary" @click="fileInput?.click()" :disabled="uploading">
-          {{ uploading ? 'Elaborazione in corso...' : 'Importa Nuovo PDF Ordine' }}
-        </button>
+      <div
+        class="upload-section"
+        :class="{ dragging: isDragging }"
+        @dragover.prevent="isDragging = true"
+        @dragleave.prevent="isDragging = false"
+        @drop.prevent="handleDrop"
+      >
+        <div class="upload-box" @click="fileInput?.click()">
+          <input type="file" ref="fileInput" @change="handleUpload" accept=".pdf" style="display: none" />
+          <div v-if="!uploading" class="upload-content">
+            <span class="upload-icon">📄</span>
+            <p>Trascina qui il PDF dell'ordine o <strong>clicca per sfogliare</strong></p>
+          </div>
+          <div v-else class="upload-progress">
+            <div class="spinner"></div>
+            <p>Elaborazione del PDF in corso...</p>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="uploadStatus.message" class="status-alert" :class="uploadStatus.type">
+        {{ uploadStatus.message }}
       </div>
 
       <div v-if="orders.length > 0" class="orders-list">
@@ -151,29 +191,72 @@ onMounted(fetchOrders);
 }
 
 .upload-section {
-  display: flex;
-  justify-content: center;
   margin-bottom: 3rem;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
 }
 
-.btn-primary {
-  background-color: #42b983;
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  border-radius: 8px;
+.upload-section.dragging {
+  border-color: #42b983;
+  background: #eafaf1;
+  transform: scale(1.02);
+}
+
+.upload-box {
+  padding: 3rem;
+  text-align: center;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.btn-primary:hover {
-  background-color: #3aa876;
+.upload-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
 }
 
-.btn-primary:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
+.upload-content p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.upload-content strong {
+  color: #42b983;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #42b983;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.status-alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.status-alert.success {
+  background-color: #eafaf1;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+
+.status-alert.error {
+  background-color: #fdf2f2;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
 }
 
 .order-card {

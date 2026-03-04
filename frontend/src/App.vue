@@ -18,10 +18,12 @@ const handleLogout = () => {
       <template v-if="auth.isAuthenticated">
         <RouterLink to="/orders">Ordini</RouterLink>
         <RouterLink to="/library">Libreria Fori</RouterLink>
+        <RouterLink to="/profile">Profilo</RouterLink>
         <a href="#" @click.prevent="handleLogout">Logout</a>
       </template>
       <template v-else>
         <RouterLink to="/login">Accedi</RouterLink>
+        <RouterLink to="/register">Registrati</RouterLink>
       </template>
       <RouterLink to="/about">About</RouterLink>
     </nav>
