@@ -13,18 +13,34 @@ from alembic import context
 sys.path.append(os.getcwd())
 
 from app.Core.config import settings
+# Stampa diagnostica per aiutare l'utente a capire se Alembic sta usando i parametri corretti
+settings.debug_print_config()
+
 from app.Infrastructure.db_supabase import Base
 # Importa i modelli per registrarli nel metadata
 from app.Models.role import Role
 from app.Models.user_supabase_role import UserSupabaseRole
 from app.Models.user_supabase import UserSupabase
+from app.Models.client import Client
+from app.Models.hole_library import HoleLibrary
+from app.Models.order import Order
+from app.Models.polygon import Polygon
+from app.Models.hole import Hole
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
 # Sovrascrive l'URL del database con quello delle impostazioni
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Diamo priorità a DATABASE_ALEMBIC_URL se presente
+if settings.DATABASE_ALEMBIC_URL:
+    print("Alembic: Uso di DATABASE_ALEMBIC_URL per la migrazione.")
+    db_url = settings.assemble_db_url(settings.DATABASE_ALEMBIC_URL)
+else:
+    print("Alembic: Uso di DATABASE_URL per la migrazione.")
+    db_url = settings.DATABASE_URL
+
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
