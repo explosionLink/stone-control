@@ -14,3 +14,7 @@ python-multipart
 alembic
 python-dotenv
 email-validator
+pdfplumber
+ezdxf
+shapely
+pillow

@@ -25,35 +25,25 @@ class Base(DeclarativeBase):
 from app.Models.user_supabase import UserSupabase
 from app.Models.role import Role
 from app.Models.user_supabase_role import UserSupabaseRole
+from app.Models.client import Client
+from app.Models.hole_library import HoleLibrary
+from app.Models.order import Order
+from app.Models.polygon import Polygon
+from app.Models.hole import Hole
 
 
 def _make_ssl_context() -> dict:
     """
     Configura il contesto SSL per la connessione al database.
-    - Se l'URL utilizza asyncpg, viene costruito un SSLContext che utilizza il bundle CA di 'certifi'.
-    - In ambienti non di produzione, se DB_SSL_VERIFY è disabilitato, la verifica viene saltata.
+    Supabase richiede SSL attivo. Usiamo 'require' come valore predefinito
+    che è compatibile con asyncpg tramite SQLAlchemy.
     """
     if "+asyncpg" not in settings.DATABASE_URL:
         return {}
 
-    # Bypass della verifica SSL (solo per sviluppo)
-    if settings.ENV != "prod" and not settings.DB_SSL_VERIFY:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        return {"ssl": ctx}
-
-    # Verifica stretta utilizzando certifi
-    try:
-        import certifi
-        cafile = certifi.where()
-        ctx = ssl.create_default_context(cafile=cafile)
-        if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
-            ctx.minimum_version = ssl.TLSVersion.TLSv1_2
-        return {"ssl": ctx}
-    except Exception:
-        # Fallback all'uso del trust store di sistema
-        return {"ssl": True}
+    # Per asyncpg, passare ssl="require" è il modo più semplice e compatibile
+    # confermato funzionante con Supabase Session Pooler.
+    return {"ssl": "require"}
 
 
 # Ottimizzazione per Supabase: viene utilizzato NullPool quando un pooler esterno

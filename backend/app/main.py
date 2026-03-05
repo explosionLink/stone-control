@@ -21,10 +21,16 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 setup_middlewares(app)
 
 # --- Mount Static Files (opzionale) ---
-# Se necessario, decommentare e configurare qui o in un modulo Core/static.py
-# from fastapi.staticfiles import StaticFiles
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+import os
+from fastapi.staticfiles import StaticFiles
+
+# Assicuriamoci che la cartella outputs esista
+outputs_dir = os.path.join(os.path.dirname(__file__), "..", "outputs")
+if not os.path.exists(outputs_dir):
+    os.makedirs(outputs_dir, exist_ok=True)
+
+app.mount("/api/v1/outputs", StaticFiles(directory=outputs_dir), name="outputs")
 
 # Inclusione dei router
-app.include_router(health_router)
+app.include_router(health_router, prefix="/api/v1")
 app.include_router(main_router)
