@@ -3,31 +3,39 @@ import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 
+const name = ref('')
 const email = ref('')
 const password = ref('')
+const confirm_password = ref('')
 const error = ref('')
+const success = ref(false)
 const loading = ref(false)
 
 const auth = useAuthStore()
 const router = useRouter()
 
-const handleLogin = async () => {
+const handleRegister = async () => {
+  if (password.value !== confirm_password.value) {
+    error.value = 'Le password non corrispondono'
+    return
+  }
+
   loading.value = true
   error.value = ''
-  const res = await auth.login(email.value, password.value)
+
+  const payload = {
+    name: name.value,
+    email: email.value,
+    password: password.value,
+    confirm_password: confirm_password.value
+  }
+
+  const res = await auth.register(payload)
   if (res.success) {
-    if (res.mfaRequired) {
-      router.push({
-        path: '/mfa-verify',
-        query: {
-          access_token: res.mfaData.access_token,
-          factor_id: res.mfaData.factor_id,
-          challenge_id: res.mfaData.challenge_id
-        }
-      })
-    } else {
-      router.push('/orders')
-    }
+    success.value = true
+    setTimeout(() => {
+      router.push('/login')
+    }, 3000)
   } else {
     error.value = res.detail
   }
@@ -39,12 +47,23 @@ const handleLogin = async () => {
   <div class="auth-view">
     <div class="auth-card">
       <div class="auth-header">
-        <span class="auth-icon">🔐</span>
-        <h1>Accedi a Stone Control</h1>
-        <p>Inserisci le tue credenziali per continuare</p>
+        <span class="auth-icon">🚀</span>
+        <h1>Inizia con Stone Control</h1>
+        <p>Crea il tuo account gratuito</p>
       </div>
 
-      <form @submit.prevent="handleLogin" class="auth-form">
+      <div v-if="success" class="success-msg">
+        <span class="icon">✅</span> Registrazione completata! Reindirizzamento...
+      </div>
+
+      <form v-else @submit.prevent="handleRegister" class="auth-form">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <div class="input-wrapper">
+            <input v-model="name" type="text" required placeholder="Nome Cognome" />
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Email</label>
           <div class="input-wrapper">
@@ -53,9 +72,16 @@ const handleLogin = async () => {
         </div>
 
         <div class="form-group">
-          <label>Password</label>
+          <label>Password (min 8 car.)</label>
           <div class="input-wrapper">
-            <input v-model="password" type="password" required placeholder="••••••••" />
+            <input v-model="password" type="password" required minlength="8" placeholder="••••••••" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Conferma Password</label>
+          <div class="input-wrapper">
+            <input v-model="confirm_password" type="password" required minlength="8" placeholder="••••••••" />
           </div>
         </div>
 
@@ -64,11 +90,11 @@ const handleLogin = async () => {
         </div>
 
         <button type="submit" :disabled="loading" class="btn-submit">
-          {{ loading ? 'Accesso in corso...' : 'Entra' }}
+          {{ loading ? 'Creazione account...' : 'Crea Account' }}
         </button>
 
         <div class="auth-footer">
-          Non hai un account? <router-link to="/register">Registrati ora</router-link>
+          Hai già un account? <router-link to="/login">Accedi</router-link>
         </div>
       </form>
     </div>
@@ -91,7 +117,7 @@ const handleLogin = async () => {
 
 .auth-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 20px;
@@ -123,7 +149,7 @@ const handleLogin = async () => {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
@@ -136,7 +162,7 @@ const handleLogin = async () => {
 
 .input-wrapper input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   background: var(--bg-dark);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -163,9 +189,18 @@ const handleLogin = async () => {
   gap: 0.5rem;
 }
 
+.success-msg {
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--primary);
+  padding: 1.5rem;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
 .btn-submit {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.8rem;
   background: var(--primary);
   color: white;
   border: none;
@@ -178,13 +213,6 @@ const handleLogin = async () => {
 
 .btn-submit:hover {
   background: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.btn-submit:disabled {
-  background: var(--border);
-  color: var(--text-muted);
-  cursor: not-allowed;
 }
 
 .auth-footer {

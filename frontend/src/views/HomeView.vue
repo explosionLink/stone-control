@@ -39,6 +39,8 @@ interface Order {
 const orders = ref<Order[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
+const isDragging = ref(false);
+const uploadStatus = ref<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
 
 const fetchOrders = async () => {
   try {
@@ -49,25 +51,46 @@ const fetchOrders = async () => {
   }
 };
 
-const handleUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-
+const uploadFile = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
 
   uploading.value = true;
+  uploadStatus.value = { message: 'Elaborazione del PDF in corso...', type: '' };
+
   try {
     await axios.post('/api/v1/orders/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    uploadStatus.value = { message: 'Importazione completata con successo!', type: 'success' };
     fetchOrders();
-  } catch (error) {
-    alert('Errore durante l\'importazione del PDF.');
+  } catch (error: any) {
+    uploadStatus.value = {
+      message: error.response?.data?.detail || 'Errore durante l\'importazione del PDF.',
+      type: 'error'
+    };
     console.error(error);
   } finally {
     uploading.value = false;
+    setTimeout(() => {
+      uploadStatus.value = { message: '', type: '' };
+    }, 5000);
+  }
+};
+
+const handleUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (file) await uploadFile(file);
+};
+
+const handleDrop = async (event: DragEvent) => {
+  isDragging.value = false;
+  const file = event.dataTransfer?.files[0];
+  if (file && file.type === 'application/pdf') {
+    await uploadFile(file);
+  } else if (file) {
+    uploadStatus.value = { message: 'Per favore, carica solo file PDF.', type: 'error' };
   }
 };
 
@@ -75,191 +98,316 @@ onMounted(fetchOrders);
 </script>
 
 <template>
-  <div class="home-container">
-    <section class="hero">
-      <h1>Benvenuto nel Sistema Gestione Ordini</h1>
-    </section>
-
-    <div class="main-content">
-      <div class="upload-section">
-        <input type="file" ref="fileInput" @change="handleUpload" accept=".pdf" style="display: none" />
-        <button class="btn-primary" @click="fileInput?.click()" :disabled="uploading">
-          {{ uploading ? 'Elaborazione in corso...' : 'Importa Nuovo PDF Ordine' }}
-        </button>
+  <div class="dashboard">
+    <header class="dashboard-header">
+      <h1>Dashboard Operativa</h1>
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Ordini Totali</span>
+          <span class="stat-value">{{ orders.length }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Ultimo Ordine</span>
+          <span class="stat-value">{{ orders.length > 0 ? orders[0].code : '-' }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Utente</span>
+          <span class="stat-value user-name">{{ auth.user?.email?.split('@')[0] }}</span>
+        </div>
       </div>
+    </header>
 
-      <div v-if="orders.length > 0" class="orders-list">
-        <h2>Ordini Recenti</h2>
-        <div v-for="order in orders" :key="order.id" class="order-card">
-          <div class="order-header">
-            <h3>Ordine: {{ order.code }}</h3>
-            <span class="order-date">{{ new Date(order.created_at).toLocaleString() }}</span>
+    <div class="dashboard-content">
+      <!-- Upload Section -->
+      <section class="upload-container">
+        <div
+          class="drop-zone"
+          :class="{ dragging: isDragging }"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="handleDrop"
+          @click="fileInput?.click()"
+        >
+          <input type="file" ref="fileInput" @change="handleUpload" accept=".pdf" style="display: none" />
+          <div v-if="!uploading" class="drop-zone-content">
+            <div class="icon-circle">📄</div>
+            <p>Trascina il PDF dell'ordine qui</p>
+            <span class="browse-link">o clicca per sfogliare i file</span>
           </div>
+          <div v-else class="upload-loader">
+            <div class="spinner"></div>
+            <p>Elaborazione ordine in corso...</p>
+          </div>
+        </div>
 
-          <div class="polygons-grid">
-            <div v-for="poly in order.polygons" :key="poly.id" class="poly-card" :class="{ mirrored: poly.is_mirrored }">
-              <div class="poly-header">
-                <h4>{{ poly.label }}</h4>
-                <span v-if="poly.is_mirrored" class="badge">Specchiato</span>
+        <div v-if="uploadStatus.message" class="status-toast" :class="uploadStatus.type">
+          {{ uploadStatus.message }}
+        </div>
+      </section>
+
+      <!-- Orders Section -->
+      <section class="orders-section">
+        <div class="section-header">
+          <h2>Ordini Recenti</h2>
+          <RouterLink to="/orders" class="view-all">Vedi tutti &rarr;</RouterLink>
+        </div>
+
+        <div v-if="orders.length > 0" class="orders-grid">
+          <div v-for="order in orders.slice(0, 4)" :key="order.id" class="order-dashboard-card">
+            <div class="order-info">
+              <span class="order-code">{{ order.code }}</span>
+              <span class="order-date">{{ new Date(order.created_at).toLocaleDateString() }}</span>
+            </div>
+            <div class="order-summary">
+              <span class="poly-count">{{ order.polygons.length }} pezzi</span>
+              <div class="poly-previews">
+                <div v-for="poly in order.polygons.slice(0, 3)" :key="poly.id" class="mini-preview">
+                  <img :src="'/api/v1/outputs/' + poly.preview_path" />
+                </div>
+                <div v-if="order.polygons.length > 3" class="more-count">+{{ order.polygons.length - 3 }}</div>
               </div>
-              <p class="specs">{{ poly.width_mm }}x{{ poly.height_mm }} mm | Sp: {{ poly.thickness_mm }}mm | {{ poly.material }}</p>
-
-              <div class="preview-container">
-                <img :src="'/api/v1/outputs/' + poly.preview_path" alt="Preview" />
-              </div>
-
-              <div class="actions">
-                <a :href="'/api/v1/outputs/' + poly.dxf_path" download class="btn-dxf">Scarica DXF</a>
-              </div>
-
-              <h5>Lavorazioni:</h5>
-              <ul class="holes-list">
-                <li v-for="hole in poly.holes" :key="hole.id">
-                  <span class="hole-type">{{ hole.type }}:</span>
-                  <span v-if="hole.diameter_mm">Ø{{ hole.diameter_mm }} prof. {{ hole.depth_mm }}</span>
-                  <span v-else>{{ hole.width_mm.toFixed(0) }}x{{ hole.height_mm.toFixed(0) }}</span>
-                  <span class="coords">(X:{{ hole.x_mm.toFixed(1) }}, Y:{{ hole.y_mm.toFixed(1) }})</span>
-                </li>
-              </ul>
             </div>
           </div>
         </div>
-      </div>
-      <div v-else-if="auth.isAuthenticated && !uploading" class="empty-state">
-        <p>Non ci sono ordini caricati. Carica il tuo primo PDF!</p>
-      </div>
+
+        <div v-else-if="!uploading" class="empty-dashboard">
+          <p>Nessun ordine presente nel sistema.</p>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.home-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+.dashboard {
+  animation: fadeIn 0.5s ease-out;
 }
 
-.hero {
-  text-align: center;
-  margin-bottom: 3rem;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.hero h1 {
-  font-size: 2.5rem;
-  color: #2c3e50;
-  margin-bottom: 1rem;
+.dashboard-header {
+  margin-bottom: 2.5rem;
 }
 
-.upload-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 3rem;
-}
-
-.btn-primary {
-  background-color: #42b983;
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #3aa876;
-}
-
-.btn-primary:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
-}
-
-.order-card {
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  background: #fdfdfd;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid #eee;
+.dashboard-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
+  color: white;
 }
 
-.polygons-grid {
+.stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
 }
 
-.poly-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
+.stat-card {
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.user-name {
+  color: white;
+  text-transform: capitalize;
+}
+
+/* Upload Section */
+.upload-container {
+  margin-bottom: 3rem;
+}
+
+.drop-zone {
+  background: var(--bg-card);
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drop-zone:hover, .drop-zone.dragging {
+  border-color: var(--primary);
+  background: rgba(66, 185, 131, 0.05);
+  transform: translateY(-2px);
+}
+
+.icon-circle {
+  width: 64px;
+  height: 64px;
+  background: var(--bg-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.drop-zone p {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.browse-link {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.upload-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(66, 185, 131, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-toast {
+  margin-top: 1rem;
   padding: 1rem;
-  background: white;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
 }
 
-.poly-card.mirrored {
-  border-left: 5px solid #3498db;
+.status-toast.success { background: rgba(39, 174, 96, 0.1); color: #2ecc71; border: 1px solid rgba(39, 174, 96, 0.2); }
+.status-toast.error { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); }
+
+/* Orders Section */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.preview-container {
-  margin: 1rem 0;
-  border: 1px solid #eee;
+.section-header h2 {
+  font-size: 1.5rem;
+}
+
+.view-all {
+  text-decoration: none;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.order-dashboard-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: transform 0.2s;
+}
+
+.order-dashboard-card:hover {
+  transform: translateY(-4px);
+  border-color: #444;
+}
+
+.order-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.order-code {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.order-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.order-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poly-count {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.poly-previews {
+  display: flex;
+  align-items: center;
+}
+
+.mini-preview {
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
+  background: white;
+  margin-left: -8px;
+  border: 2px solid var(--bg-card);
   overflow: hidden;
 }
 
-.preview-container img {
+.mini-preview img {
   width: 100%;
-  display: block;
+  height: 100%;
+  object-fit: contain;
 }
 
-.btn-dxf {
-  display: inline-block;
-  background: #3498db;
-  color: white;
-  padding: 0.5rem 1rem;
-  text-decoration: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.holes-list {
-  list-style: none;
-  padding: 0;
-  font-size: 0.85rem;
-}
-
-.hole-type {
-  font-weight: bold;
-  margin-right: 0.5rem;
-}
-
-.coords {
-  color: #7f8c8d;
-  margin-left: 0.5rem;
-}
-
-.empty-state {
-  text-align: center;
-  color: #7f8c8d;
-  margin-top: 4rem;
-}
-
-.badge {
-  background: #3498db;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
+.more-count {
   font-size: 0.75rem;
+  margin-left: 0.5rem;
+  color: var(--text-muted);
+}
+
+.empty-dashboard {
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  color: var(--text-muted);
 }
 </style>

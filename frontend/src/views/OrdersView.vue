@@ -75,20 +75,24 @@ onMounted(fetchOrders);
 </script>
 
 <template>
-  <div class="orders-container">
-    <h1>Gestione Ordini Cucina</h1>
-
-    <div class="upload-section">
-      <input type="file" ref="fileInput" @change="handleUpload" accept=".pdf" style="display: none" />
-      <button @click="fileInput?.click()" :disabled="uploading">
-        {{ uploading ? 'Elaborazione in corso...' : 'Importa PDF Ordine' }}
-      </button>
-    </div>
+  <div class="orders-view">
+    <header class="view-header">
+      <h1>Archivio Ordini</h1>
+      <div class="upload-action">
+        <input type="file" ref="fileInput" @change="handleUpload" accept=".pdf" style="display: none" />
+        <button class="btn-primary" @click="fileInput?.click()" :disabled="uploading">
+          {{ uploading ? 'Elaborazione...' : '+ Importa PDF' }}
+        </button>
+      </div>
+    </header>
 
     <div class="orders-list">
       <div v-for="order in orders" :key="order.id" class="order-card">
         <div class="order-header">
-          <h3>Ordine: {{ order.code }}</h3>
+          <div class="order-main-info">
+            <span class="order-icon">📦</span>
+            <h3>Ordine: {{ order.code }}</h3>
+          </div>
           <span class="order-date">{{ new Date(order.created_at).toLocaleString() }}</span>
         </div>
 
@@ -98,25 +102,38 @@ onMounted(fetchOrders);
               <h4>{{ poly.label }}</h4>
               <span v-if="poly.is_mirrored" class="badge">Specchiato</span>
             </div>
-            <p class="specs">{{ poly.width_mm }}x{{ poly.height_mm }} mm | Sp: {{ poly.thickness_mm }}mm | {{ poly.material }}</p>
+
+            <div class="poly-specs">
+              <span class="spec-item">📐 {{ poly.width_mm }} x {{ poly.height_mm }} mm</span>
+              <span class="spec-item">📏 Sp: {{ poly.thickness_mm }}mm</span>
+              <span class="spec-item">💎 {{ poly.material }}</span>
+            </div>
 
             <div class="preview-container">
               <img :src="'/api/v1/outputs/' + poly.preview_path" alt="Preview" />
             </div>
 
-            <div class="actions">
-              <a :href="'/api/v1/outputs/' + poly.dxf_path" download class="btn-dxf">Scarica DXF</a>
+            <div class="card-actions">
+              <a :href="'/api/v1/outputs/' + poly.dxf_path" download class="btn-dxf">
+                <span class="icon">💾</span> Scarica DXF
+              </a>
             </div>
 
-            <h5>Lavorazioni:</h5>
-            <ul class="holes-list">
-              <li v-for="hole in poly.holes" :key="hole.id">
-                <span class="hole-type">{{ hole.type }}:</span>
-                <span v-if="hole.diameter_mm">Ø{{ hole.diameter_mm }} prof. {{ hole.depth_mm }}</span>
-                <span v-else>{{ hole.width_mm.toFixed(0) }}x{{ hole.height_mm.toFixed(0) }}</span>
-                <span class="coords">(X:{{ hole.x_mm.toFixed(1) }}, Y:{{ hole.y_mm.toFixed(1) }})</span>
-              </li>
-            </ul>
+            <div class="lavorazioni-section">
+              <h5>Lavorazioni ({{ poly.holes.length }})</h5>
+              <ul class="holes-list">
+                <li v-for="hole in poly.holes" :key="hole.id">
+                  <div class="hole-info">
+                    <span class="hole-type">{{ hole.type }}</span>
+                    <span class="hole-dims">
+                      <template v-if="hole.diameter_mm">Ø{{ hole.diameter_mm }} p.{{ hole.depth_mm }}</template>
+                      <template v-else>{{ hole.width_mm.toFixed(0) }}x{{ hole.height_mm.toFixed(0) }}</template>
+                    </span>
+                  </div>
+                  <span class="coords">X:{{ hole.x_mm.toFixed(1) }} Y:{{ hole.y_mm.toFixed(1) }}</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -125,79 +142,220 @@ onMounted(fetchOrders);
 </template>
 
 <style scoped>
-.orders-container {
-  padding: 2rem;
+.orders-view {
+  animation: fadeIn 0.4s ease-out;
 }
-.upload-section {
-  margin-bottom: 2rem;
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-.order-card {
-  border: 1px solid #ccc;
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.view-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 2rem;
-  background: #f9f9f9;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.polygons-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
+
+.order-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #eee;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
+
+.order-main-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.order-icon { font-size: 1.25rem; }
+
+.order-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: white;
+}
+
 .order-date {
-  color: #888;
   font-size: 0.9rem;
+  color: var(--text-muted);
 }
+
+.polygons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
 .poly-card {
-  border: 1px solid #eee;
-  padding: 1rem;
-  background: white;
-  transition: transform 0.2s;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
 }
+
 .poly-card.mirrored {
-  border-left: 5px solid #3498db;
+  border-top: 4px solid var(--primary);
 }
+
 .poly-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-.badge {
-  background: #3498db;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-}
-.specs {
-  font-size: 0.85rem;
-  color: #555;
   margin-bottom: 1rem;
 }
-.preview-container img {
-  max-width: 100%;
-  height: auto;
-  border: 1px solid #ddd;
-}
-.actions {
-  margin: 1rem 0;
-}
-.actions a {
-  background: #42b983;
+
+.poly-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
   color: white;
-  padding: 0.5rem 1rem;
-  text-decoration: none;
+}
+
+.badge {
+  background: rgba(66, 185, 131, 0.1);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(66, 185, 131, 0.2);
+}
+
+.poly-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.spec-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 8px;
   border-radius: 4px;
 }
+
+.preview-container {
+  background: white;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1.25rem;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-container img {
+  max-width: 100%;
+  max-height: 250px;
+  display: block;
+}
+
+.card-actions {
+  margin-bottom: 1.5rem;
+}
+
+.btn-dxf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #333;
+  color: white;
+  text-decoration: none;
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-dxf:hover {
+  background: #444;
+}
+
+.lavorazioni-section h5 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
 .holes-list {
-  font-size: 0.8rem;
-  color: #666;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.holes-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hole-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.hole-type {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.hole-dims {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.coords {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--primary);
+  opacity: 0.8;
 }
 </style>
