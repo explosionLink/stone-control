@@ -8,7 +8,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # 🔒 Dipendenze/guardie
-from app.Router.supabase_auth import require_roles, get_current_claims
+from app.Router.supabase_auth import require_roles, get_current_claims, get_optional_claims
 from app.Infrastructure.db_supabase import get_db
 
 # 📦 Controller applicativi
@@ -200,7 +200,6 @@ from fastapi import UploadFile, File
 router_orders = APIRouter(
     prefix="/api/v1/orders",
     tags=["Orders"],
-    dependencies=[Depends(get_current_claims)],
 )
 
 @router_orders.get("/", response_model=List[OrderRead])
@@ -211,7 +210,7 @@ async def list_orders(db: AsyncSession = Depends(get_db)):
 async def import_pdf(
     db: AsyncSession = Depends(get_db),
     file: UploadFile = File(...),
-    claims=Depends(get_current_claims)
+    claims=Depends(get_optional_claims)
 ):
     return await orders.import_pdf(db, file, claims)
 
