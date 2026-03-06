@@ -24,25 +24,25 @@ async def create_hole(
     # Need polygon_id in schema to create
     return await service.create(schema)
 
-@router.patch("/{id}", response_model=HoleRead)
+@router.patch("/{hole_id}", response_model=HoleRead)
 async def update_hole(
-    id: UUID,
+    hole_id: UUID,
     schema: HoleBase,
     service: Annotated[HoleService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    updated = await service.update(id, schema)
+    updated = await service.update(hole_id, schema)
     if not updated:
         raise HTTPException(status_code=404, detail="Foro non trovato")
     return updated
 
-@router.delete("/{id}")
+@router.delete("/{hole_id}")
 async def delete_hole(
-    id: UUID,
+    hole_id: UUID,
     service: Annotated[HoleService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    success = await service.delete(id)
+    success = await service.delete(hole_id)
     if not success:
         raise HTTPException(status_code=404, detail="Foro non trovato")
     return {"deleted": True}

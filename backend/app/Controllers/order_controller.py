@@ -70,8 +70,11 @@ class OrderController:
             db.add(order)
             await db.flush()
         else:
-            # Opzionale: pulisci poligoni vecchi se stai ri-importando
-            pass
+            # Pulisci poligoni vecchi se stai ri-importando lo stesso ordine
+            from sqlalchemy import delete
+            # La cancellazione a cascata dovrebbe gestire Hole, ma per sicurezza o se non configurata:
+            await db.execute(delete(Polygon).where(Polygon.order_id == order.id))
+            await db.flush()
 
         for res in processing_results:
             poly = Polygon(

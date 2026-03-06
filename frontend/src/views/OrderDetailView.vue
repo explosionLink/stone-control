@@ -31,6 +31,19 @@ const deleteOrder = async () => {
   }
 }
 
+const updateHole = async (hole: any) => {
+  try {
+     // Esempio semplice: apri un prompt o un altro modal per i valori
+     const newX = prompt("Nuova coordinata X", hole.x_mm.toString());
+     if (newX !== null) {
+       await api.holes.update(hole.id, { ...hole, x_mm: parseFloat(newX) });
+       fetchOrder();
+     }
+  } catch (err) {
+    console.error('Errore aggiornamento foro:', err);
+  }
+}
+
 const deleteHole = async (holeId: string) => {
   if (confirm('Eliminare questo foro?')) {
     try {
@@ -81,7 +94,8 @@ onMounted(fetchOrder)
         <p class="subtitle">Creato il {{ new Date(order.created_at).toLocaleString() }}</p>
       </div>
       <div class="header-actions">
-        <button class="btn danger" @click="deleteOrder">Elimina Ordine</button>
+        <!-- Rimosso elimina ordine o limitato ad admin -->
+        <p class="info-text">Per correggere l'ordine, re-importa il PDF aggiornato nella Dashboard.</p>
       </div>
     </div>
 
@@ -123,7 +137,8 @@ onMounted(fetchOrder)
                    <span v-if="hole.diameter_mm">Ø{{ hole.diameter_mm }}</span>
                    <span v-else>{{ hole.width_mm }}x{{ hole.height_mm }}</span>
                 </td>
-                <td>
+                <td class="actions">
+                   <button class="btn small" @click="updateHole(hole)">Modifica</button>
                    <button class="btn small danger" @click="deleteHole(hole.id)">Elimina</button>
                 </td>
               </tr>
@@ -169,6 +184,7 @@ onMounted(fetchOrder)
 <style scoped>
 .order-detail { padding: 2rem 0; }
 .view-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.info-text { font-size: 0.9rem; color: var(--text-muted); font-style: italic; max-width: 300px; text-align: right; }
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-content { background: var(--bg-card); padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px; }
 .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }

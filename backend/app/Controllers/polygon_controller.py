@@ -15,36 +15,36 @@ router = APIRouter(prefix="/polygons", tags=["Polygons"])
 def get_service(session: Annotated[AsyncSession, Depends(get_db)]) -> PolygonService:
     return PolygonService(session)
 
-@router.get("/{id}", response_model=PolygonRead)
+@router.get("/{polygon_id}", response_model=PolygonRead)
 async def get_polygon(
-    id: UUID,
+    polygon_id: UUID,
     service: Annotated[PolygonService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    poly = await service.get_by_id(id)
+    poly = await service.get_by_id(polygon_id)
     if not poly:
         raise HTTPException(status_code=404, detail="Poligono non trovato")
     return poly
 
-@router.patch("/{id}", response_model=PolygonRead)
+@router.patch("/{polygon_id}", response_model=PolygonRead)
 async def update_polygon(
-    id: UUID,
+    polygon_id: UUID,
     schema: PolygonBase,
     service: Annotated[PolygonService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    updated = await service.update(id, schema)
+    updated = await service.update(polygon_id, schema)
     if not updated:
         raise HTTPException(status_code=404, detail="Poligono non trovato")
     return updated
 
-@router.delete("/{id}")
+@router.delete("/{polygon_id}")
 async def delete_polygon(
-    id: UUID,
+    polygon_id: UUID,
     service: Annotated[PolygonService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    success = await service.delete(id)
+    success = await service.delete(polygon_id)
     if not success:
         raise HTTPException(status_code=404, detail="Poligono non trovato")
     return {"deleted": True}

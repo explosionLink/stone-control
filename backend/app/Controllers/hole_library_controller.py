@@ -32,24 +32,24 @@ async def create_hole(
     # Solo admin possono aggiungere alla libreria (RBAC check opzionale qui o via middleware)
     return await service.create(schema)
 
-@router.patch("/{id}", response_model=HoleLibraryRead)
+@router.patch("/{hole_definition_id}", response_model=HoleLibraryRead)
 async def update_hole(
-    id: Annotated[UUID, Path()],
+    hole_definition_id: Annotated[UUID, Path()],
     schema: HoleLibraryUpdate,
     service: Annotated[HoleLibraryService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    updated = await service.update(id, schema)
+    updated = await service.update(hole_definition_id, schema)
     if not updated:
         raise HTTPException(status_code=404, detail="Hole definition not found")
     return updated
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{hole_definition_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_hole(
-    id: Annotated[UUID, Path()],
+    hole_definition_id: Annotated[UUID, Path()],
     service: Annotated[HoleLibraryService, Depends(get_service)],
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
-    success = await service.delete(id)
+    success = await service.delete(hole_definition_id)
     if not success:
         raise HTTPException(status_code=404, detail="Hole definition not found")
