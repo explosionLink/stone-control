@@ -100,6 +100,7 @@ class VenetaCucineParser(BaseParser):
         suffix = "_mirrored" if is_mirrored else ""
         dxf_filename = f"{order_code}_{pageno}{suffix}.dxf"
         preview_filename = f"{order_code}_{pageno}{suffix}.png"
+        tech_preview_filename = f"{order_code}_{pageno}{suffix}_tech.png"
 
         # Transformations for mirroring if needed
         # In actual implementation, mirroring happens on the geometry before DXF export
@@ -134,10 +135,11 @@ class VenetaCucineParser(BaseParser):
             template_holes = self.generate_template_holes(holes_data)
             holes_data.extend(template_holes)
 
-        # Generate DXF and PNG
-        self.write_dxf(self.outputs_dir / dxf_filename, outer, holes_data, meta, is_mirrored)
+        # Generate DXF and PNGs
+        outer_coords = self.write_dxf(self.outputs_dir / dxf_filename, outer, holes_data, meta, is_mirrored)
         # Note: png preview for mirrored might just be the same or a flip of the original
         self.save_preview(page, self.outputs_dir / preview_filename, is_mirrored)
+        self.save_technical_preview(self.outputs_dir / tech_preview_filename, outer_coords, holes_data, meta)
 
         return {
             "label": f"Pezzo {pageno}{' (Specchiato)' if is_mirrored else ''}",
@@ -149,6 +151,7 @@ class VenetaCucineParser(BaseParser):
             "is_machining": is_mirrored,
             "dxf_path": dxf_filename,
             "preview_path": preview_filename,
+            "technical_preview_path": tech_preview_filename,
             "holes": holes_data
         }
 
@@ -221,7 +224,7 @@ class VenetaCucineParser(BaseParser):
         fixed = poly.buffer(0)
         return max(list(fixed.geoms), key=lambda g: g.area) if fixed.geom_type == "MultiPolygon" else fixed
 
-    def write_dxf(self, path: Path, outer: ShapelyPolygon, holes_data: List[Dict[str, Any]], meta: Dict[str, Any], is_mirrored: bool):
+    def write_dxf(self, path: Path, outer: ShapelyPolygon, holes_data: List[Dict[str, Any]], meta: Dict[str, Any], is_mirrored: bool) -> List[Tuple[float, float]]:
         doc = ezdxf.new("R2010")
         doc.units = ezdxf.units.MM
         msp = doc.modelspace()
@@ -253,6 +256,64 @@ class VenetaCucineParser(BaseParser):
                 msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "LAVORAZIONE"})
 
         doc.saveas(str(path))
+        return outer_coords
+
+    def save_technical_preview(self, path: Path, outer_coords: List[Tuple[float, float]], holes_data: List[Dict[str, Any]], meta: Dict[str, Any]):
+        from PIL import Image, ImageDraw, ImageFont
+
+        width_mm = meta["width_mm"]
+        height_mm = meta["height_mm"]
+
+        padding = 80
+        # Use a fixed maximum dimension for the image to keep it manageable but detailed
+        max_canvas_dim = 1200
+        scale = (max_canvas_dim - 2 * padding) / max(width_mm, height_mm)
+
+        img_w = int(width_mm * scale) + 2 * padding
+        img_h = int(height_mm * scale) + 2 * padding
+
+        img = Image.new('RGB', (img_w, img_h), color='white')
+        draw = ImageDraw.Draw(img)
+
+        # Prova a caricare un font più leggibile, altrimenti usa quello di default
+        try:
+            # Spesso presente su molti sistemi linux
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
+            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+        except:
+            font = ImageFont.load_default()
+            font_small = ImageFont.load_default()
+
+        def to_px(x_mm, y_mm):
+            # Y is inverted in drawing: y_mm=0 is bottom
+            return padding + x_mm * scale, img_h - (padding + y_mm * scale)
+
+        # Draw outer perimeter
+        poly_px = [to_px(x, y) for x, y in outer_coords]
+        draw.polygon(poly_px, outline='black', width=4)
+
+        # Add overall dimensions text
+        draw.text((padding, 10), f"Larghezza: {width_mm}mm  Altezza: {height_mm}mm", fill='black', font=font)
+        if meta.get("is_sottotop"):
+             draw.text((padding, 35), "SOTTOTOP - VEDI DIMA", fill='red', font=font)
+
+        # Draw holes
+        for h in holes_data:
+            if "diameter_mm" in h and h["diameter_mm"]:
+                r_px = max(2.0, (h["diameter_mm"] / 2) * scale)
+                cx, cy = to_px(h["x_mm"], h["y_mm"])
+                draw.ellipse([cx-r_px, cy-r_px, cx+r_px, cy+r_px], outline='red', width=3)
+                label = f"X:{h['x_mm']:.1f} Y:{h['y_mm']:.1f} (D:{h['diameter_mm']})"
+                draw.text((cx + 5, cy + 5), label, fill='blue', font=font_small)
+            else:
+                x0, y0 = to_px(h["x_mm"], h["y_mm"])
+                x1, y1 = to_px(h["x_mm"] + h["width_mm"], h["y_mm"] + h["height_mm"])
+                # x0, y1 is top-left in pixel space because y1 is smaller (larger mm_y)
+                draw.rectangle([x0, y1, x1, y0], outline='red', width=3)
+                label = f"X:{h['x_mm']:.0f} Y:{h['y_mm']:.0f} ({h['width_mm']:.0f}x{h['height_mm']:.0f})"
+                draw.text((x0 + 5, y1 - 20), label, fill='blue', font=font_small)
+
+        img.save(str(path))
 
     def save_preview(self, page, path: Path, is_mirrored: bool):
         im = page.to_image(resolution=150).original

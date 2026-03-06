@@ -80,6 +80,7 @@ class OrderController:
                 height_mm=res["height_mm"],
                 dxf_path=res["dxf_path"],
                 preview_path=res["preview_path"],
+                technical_preview_path=res.get("technical_preview_path"),
                 is_mirrored=res.get("is_mirrored", False),
                 is_machining=res.get("is_machining", False),
                 material=res.get("material"),

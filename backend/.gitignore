@@ -3,3 +3,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Directory di dati dinamici (caricamenti e output tecnici)
+imports/
+outputs/
