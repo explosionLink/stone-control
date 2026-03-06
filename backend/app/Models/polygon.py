@@ -22,6 +22,7 @@ class Polygon(Base):
     height_mm: Mapped[float] = mapped_column(Float)
     dxf_path: Mapped[str] = mapped_column(String(255), nullable=True)
     preview_path: Mapped[str] = mapped_column(String(255), nullable=True)
+    technical_preview_path: Mapped[str] = mapped_column(String(255), nullable=True)
     is_mirrored: Mapped[bool] = mapped_column(default=False)
     is_machining: Mapped[bool] = mapped_column(default=False)
     material: Mapped[str] = mapped_column(String(128), nullable=True)

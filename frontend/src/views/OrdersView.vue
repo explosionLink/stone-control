@@ -22,6 +22,7 @@ interface Polygon {
   thickness_mm: number;
   is_mirrored: boolean;
   preview_path: string;
+  technical_preview_path: string | null;
   dxf_path: string;
   holes: Hole[];
 }
@@ -118,8 +119,20 @@ onMounted(fetchOrders);
               <span class="spec-item">💎 {{ poly.material }}</span>
             </div>
 
-            <div class="preview-container">
-              <img :src="'/api/v1/outputs/' + poly.preview_path" alt="Preview" />
+            <div class="previews-comparison">
+              <div class="preview-box">
+                <span class="preview-label">Originale PDF</span>
+                <div class="preview-container">
+                  <img :src="'/api/v1/outputs/' + poly.preview_path" alt="Preview PDF" />
+                </div>
+              </div>
+
+              <div class="preview-box" v-if="poly.technical_preview_path">
+                <span class="preview-label">Anteprima Tecnica (DXF)</span>
+                <div class="preview-container tech">
+                  <img :src="'/api/v1/outputs/' + poly.technical_preview_path" alt="Anteprima Tecnica" />
+                </div>
+              </div>
             </div>
 
             <div class="card-actions">
@@ -327,17 +340,43 @@ onMounted(fetchOrders);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.previews-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.preview-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preview-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .preview-container {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.75rem;
-  height: 220px;
+  padding: 1rem;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.preview-container.tech {
+  background: #f8f9fa;
+  border: 1px dashed #ccc;
 }
 
 .preview-container img {

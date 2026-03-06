@@ -26,6 +26,7 @@ class PolygonBase(BaseModel):
     height_mm: float
     dxf_path: Optional[str] = None
     preview_path: Optional[str] = None
+    technical_preview_path: Optional[str] = None
     is_mirrored: bool = False
     is_machining: bool = False
     material: Optional[str] = None
