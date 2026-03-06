@@ -21,3 +21,47 @@ async def list_clients(
     user_claims: Annotated[dict, Depends(get_current_claims)]
 ):
     return await service.get_all()
+
+@router.get("/{id}", response_model=ClientRead)
+async def get_client(
+    id: UUID,
+    service: Annotated[ClientService, Depends(get_service)],
+    user_claims: Annotated[dict, Depends(get_current_claims)]
+):
+    client = await service.get_by_id(id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trovato")
+    return client
+
+from app.Schemas.client import ClientCreate, ClientUpdate
+
+@router.post("/", response_model=ClientRead)
+async def create_client(
+    schema: ClientCreate,
+    service: Annotated[ClientService, Depends(get_service)],
+    user_claims: Annotated[dict, Depends(get_current_claims)]
+):
+    return await service.create(schema)
+
+@router.patch("/{id}", response_model=ClientRead)
+async def update_client(
+    id: UUID,
+    schema: ClientUpdate,
+    service: Annotated[ClientService, Depends(get_service)],
+    user_claims: Annotated[dict, Depends(get_current_claims)]
+):
+    updated = await service.update(id, schema)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Client non trovato")
+    return updated
+
+@router.delete("/{id}")
+async def delete_client(
+    id: UUID,
+    service: Annotated[ClientService, Depends(get_service)],
+    user_claims: Annotated[dict, Depends(get_current_claims)]
+):
+    success = await service.delete(id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Client non trovato")
+    return {"deleted": True}

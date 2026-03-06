@@ -11,6 +11,10 @@ interface HoleDefinition {
 }
 
 const holes = ref<HoleDefinition[]>([]);
+const showModal = ref(false)
+const isEditing = ref(false)
+const currentHole = ref<any>({ code: '', name: '', diameter_mm: null, depth_mm: null });
+
 const newHole = ref({
   code: '',
   name: '',
@@ -27,19 +31,35 @@ const fetchHoles = async () => {
   }
 };
 
-const createHole = async () => {
-  if (!newHole.value.code || !newHole.value.name) {
+const openCreateModal = () => {
+  currentHole.value = { code: '', name: '', diameter_mm: null, depth_mm: null }
+  isEditing.value = false
+  showModal.value = true
+}
+
+const openEditModal = (hole: any) => {
+  currentHole.value = { ...hole }
+  isEditing.value = true
+  showModal.value = true
+}
+
+const saveHole = async () => {
+  if (!currentHole.value.code || !currentHole.value.name) {
     alert('Codice e Nome sono obbligatori');
     return;
   }
   try {
-    await axios.post('/api/v1/hole-library/', newHole.value);
-    newHole.value = { code: '', name: '', diameter_mm: null, depth_mm: null };
+    if (isEditing.value) {
+      await axios.patch(`/api/v1/hole-library/${currentHole.value.id}`, currentHole.value);
+    } else {
+      await axios.post('/api/v1/hole-library/', currentHole.value);
+    }
+    showModal.value = false
     fetchHoles();
   } catch (error) {
-    console.error('Errore nella creazione foro:', error);
+    console.error('Errore nel salvataggio foro:', error);
   }
-};
+}
 
 const deleteHole = async (id: string) => {
   if (!confirm('Sei sicuro di voler eliminare questa configurazione?')) return;
@@ -61,29 +81,10 @@ onMounted(fetchHoles);
       <p class="view-subtitle">Gestisci i tipi di foratura standard riconosciuti dal sistema</p>
     </header>
 
-    <div class="add-hole-form bg-card">
-      <h3 class="form-title">Aggiungi Nuovo Tipo Foro</h3>
-      <div class="form-row">
-        <div class="input-group">
-          <label>Codice</label>
-          <input v-model="newHole.code" placeholder="es. BUSSOLA_12" />
-        </div>
-        <div class="input-group">
-          <label>Nome</label>
-          <input v-model="newHole.name" placeholder="es. Bussola Ø12" />
-        </div>
-        <div class="input-group mini">
-          <label>Ø mm</label>
-          <input type="number" v-model="newHole.diameter_mm" placeholder="0" />
-        </div>
-        <div class="input-group mini">
-          <label>Profondità</label>
-          <input type="number" v-model="newHole.depth_mm" placeholder="0" />
-        </div>
-        <button @click="createHole" class="btn btn-primary btn-add">
-          <span class="icon">➕</span> Aggiungi
-        </button>
-      </div>
+    <div class="view-actions">
+       <button @click="openCreateModal" class="btn btn-primary">
+          <span class="icon">➕</span> Aggiungi Nuovo Tipo Foro
+       </button>
     </div>
 
     <div class="table-container bg-card">
@@ -104,9 +105,14 @@ onMounted(fetchHoles);
             <td>{{ hole.diameter_mm !== null ? hole.diameter_mm + ' mm' : '-' }}</td>
             <td>{{ hole.depth_mm !== null ? hole.depth_mm + ' mm' : '-' }}</td>
             <td class="actions-col">
-              <button @click="deleteHole(hole.id)" class="btn-delete" title="Elimina">
-                🗑️
-              </button>
+              <div class="actions-flex">
+                <button @click="openEditModal(hole)" class="btn-edit" title="Modifica">
+                  ✏️
+                </button>
+                <button @click="deleteHole(hole.id)" class="btn-delete" title="Elimina">
+                  🗑️
+                </button>
+              </div>
             </td>
           </tr>
           <tr v-if="holes.length === 0">
@@ -114,6 +120,35 @@ onMounted(fetchHoles);
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Hole Library Modal -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>{{ isEditing ? 'Modifica Tipo Foro' : 'Nuovo Tipo Foro' }}</h2>
+        <form @submit.prevent="saveHole">
+          <div class="form-group">
+            <label>Codice</label>
+            <input v-model="currentHole.code" required />
+          </div>
+          <div class="form-group">
+            <label>Nome</label>
+            <input v-model="currentHole.name" required />
+          </div>
+          <div class="form-group">
+            <label>Diametro (mm)</label>
+            <input type="number" v-model="currentHole.diameter_mm" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Profondità (mm)</label>
+            <input type="number" v-model="currentHole.depth_mm" step="0.1" />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn" @click="showModal = false">Annulla</button>
+            <button type="submit" class="btn primary">Salva</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
@@ -258,8 +293,44 @@ onMounted(fetchHoles);
 
 .actions-col {
   text-align: right;
-  width: 100px;
+  width: 120px;
 }
+
+.actions-flex {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.view-actions {
+  margin-bottom: 2rem;
+}
+
+.btn-edit {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border: 1px solid var(--border);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  border-color: var(--primary);
+  background: rgba(66, 185, 131, 0.1);
+}
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: var(--bg-card); padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px; text-align: left; }
+.form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.form-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+.form-group input { background: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 0.6rem; border-radius: 6px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
 
 .btn-delete {
   background: rgba(255, 82, 82, 0.1);

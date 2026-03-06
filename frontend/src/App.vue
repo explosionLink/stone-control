@@ -25,6 +25,9 @@ const handleLogout = () => {
           <RouterLink to="/">Dashboard</RouterLink>
           <template v-if="auth.isAuthenticated">
             <RouterLink to="/orders">Ordini</RouterLink>
+            <RouterLink to="/clients">Clienti</RouterLink>
+            <RouterLink to="/users">Utenti</RouterLink>
+            <RouterLink to="/roles">Ruoli</RouterLink>
             <RouterLink to="/library">Libreria Fori</RouterLink>
             <div class="user-menu">
               <RouterLink to="/profile" class="profile-link">

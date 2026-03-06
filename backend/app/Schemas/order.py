@@ -7,6 +7,7 @@ from uuid import UUID
 from datetime import datetime
 
 class HoleBase(BaseModel):
+    polygon_id: Optional[UUID] = None
     type: Optional[str] = None
     x_mm: float
     y_mm: float

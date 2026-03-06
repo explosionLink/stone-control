@@ -11,6 +11,7 @@ from app.Models.order import Order
 from app.Models.polygon import Polygon
 from app.Models.hole import Hole
 from app.Schemas.order import OrderRead
+from app.Services.order_service import OrderService
 from uuid import UUID
 from pathlib import Path
 import shutil
@@ -117,11 +118,19 @@ class OrderController:
         order_id: UUID,
         db: Annotated[AsyncSession, Depends(get_db)],
     ) -> OrderRead:
-        stmt = select(Order).where(Order.id == order_id).options(
-            selectinload(Order.polygons).selectinload(Polygon.holes)
-        )
-        result = await db.execute(stmt)
-        row = result.scalar_one_or_none()
+        svc = OrderService(db)
+        row = await svc.get_by_id(order_id)
         if not row:
             raise HTTPException(status_code=404, detail="Ordine non trovato")
         return OrderRead.model_validate(row)
+
+    async def delete_order(
+        self,
+        order_id: UUID,
+        db: Annotated[AsyncSession, Depends(get_db)],
+    ) -> dict:
+        svc = OrderService(db)
+        success = await svc.delete(order_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Ordine non trovato")
+        return {"deleted": True}
