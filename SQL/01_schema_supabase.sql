@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.polygons (
     thickness_mm FLOAT,
     is_mirrored BOOLEAN DEFAULT FALSE,
     preview_path VARCHAR(512),
+    technical_preview_path VARCHAR(512),
     dxf_path VARCHAR(512),
     created_at TIMESTAMPTZ DEFAULT now()
 );
