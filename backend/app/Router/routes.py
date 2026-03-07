@@ -19,6 +19,8 @@ from app.Controllers.user_supabase_roles_controller import UserSupabaseRolesCont
 from app.Controllers.order_controller import OrderController
 from app.Controllers.client_controller import router as client_router
 from app.Controllers.hole_library_controller import router as hole_library_router
+from app.Controllers.polygon_controller import router as polygon_router
+from app.Controllers.hole_controller import router as hole_router
 
 # 📦 Schemi response (opzionali ma utili in Swagger)
 from app.Schemas.user_supabase import UserSupabaseRead
@@ -186,10 +188,12 @@ router_user_supabase_roles.delete(
 router.include_router(router_user_supabase_roles)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 🏢 CLIENTS & HOLE LIBRARY
+# 🏢 CLIENTS & HOLE LIBRARY & GEOMETRY
 # ──────────────────────────────────────────────────────────────────────────────
 router.include_router(client_router, prefix="/api/v1")
 router.include_router(hole_library_router, prefix="/api/v1")
+router.include_router(polygon_router, prefix="/api/v1")
+router.include_router(hole_router, prefix="/api/v1")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 📦 ORDERS (protetto: utenti autenticati)
@@ -217,6 +221,10 @@ async def import_pdf(
 @router_orders.get("/{order_id}", response_model=OrderRead)
 async def get_order(order_id: UUID, db: AsyncSession = Depends(get_db)):
     return await orders.get_order(order_id, db)
+
+@router_orders.delete("/{order_id}")
+async def delete_order(order_id: UUID, db: AsyncSession = Depends(get_db), claims=Depends(get_current_claims)):
+    return await orders.delete_order(order_id, db)
 
 router.include_router(router_orders)
 

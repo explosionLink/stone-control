@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import api from '../api/crud';
 
 interface Hole {
   id: string;
@@ -37,6 +38,28 @@ interface Order {
 const orders = ref<Order[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
+
+const deleteOrder = async (orderId: string) => {
+  if (confirm('Eliminare definitivamente questo ordine e tutti i suoi pezzi?')) {
+    try {
+      await api.orders.delete(orderId);
+      fetchOrders();
+    } catch (err) {
+      console.error('Errore eliminazione ordine:', err);
+    }
+  }
+};
+
+const deletePolygon = async (polyId: string) => {
+  if (confirm('Eliminare questo pezzo e tutte le sue lavorazioni?')) {
+    try {
+      await api.polygons.delete(polyId);
+      fetchOrders();
+    } catch (err) {
+      console.error('Errore eliminazione pezzo:', err);
+    }
+  }
+};
 
 const fetchOrders = async () => {
   try {
@@ -104,13 +127,17 @@ onMounted(fetchOrders);
           <div class="order-summary-badge">
             {{ order.polygons.length }} Pezzi rilevati
           </div>
+          <button class="btn btn-danger btn-small" @click="deleteOrder(order.id)">🗑️ Elimina Ordine</button>
         </div>
 
         <div class="polygons-grid">
           <div v-for="poly in order.polygons" :key="poly.id" class="poly-card" :class="{ mirrored: poly.is_mirrored }">
             <div class="poly-header">
               <h4>{{ poly.label }}</h4>
-              <span v-if="poly.is_mirrored" class="badge-mirrored">Specchiato</span>
+              <div class="poly-header-actions">
+                <span v-if="poly.is_mirrored" class="badge-mirrored">Specchiato</span>
+                <button class="btn btn-small btn-danger" @click="deletePolygon(poly.id)" title="Elimina Pezzo">🗑️</button>
+              </div>
             </div>
 
             <div class="poly-specs">
@@ -309,6 +336,12 @@ onMounted(fetchOrders);
   font-size: 1.35rem;
   font-weight: 700;
   color: white;
+}
+
+.poly-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .badge-mirrored {

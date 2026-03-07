@@ -20,5 +20,14 @@ class ClientService:
         # BaseRepository doesn't have get_by_code, let's use search or custom query
         from sqlalchemy import select
         stmt = select(Client).where(Client.code == code)
-        result = await self.repo.session.execute(stmt)
+        result = await self.repo.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def create(self, obj_in) -> Client:
+        return await self.repo.create(obj_in)
+
+    async def update(self, id: UUID, obj_in) -> Optional[Client]:
+        return await self.repo.update(id, obj_in)
+
+    async def delete(self, id: UUID) -> bool:
+        return await self.repo.delete(id)

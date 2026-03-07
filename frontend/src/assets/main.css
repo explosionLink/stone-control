@@ -52,3 +52,68 @@
   border-color: var(--primary);
   color: var(--primary);
 }
+
+.btn-danger {
+  background-color: #ff3b3b; /* Rosso più acceso per contrasto */
+  color: white;
+  font-weight: 800;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.btn-danger:hover {
+  background-color: #ff1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.btn-primary {
+  background-color: #2ecc71; /* Verde più saturo */
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-primary:hover {
+  background-color: #27ae60;
+}
+
+.btn-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Stili per tabelle CRUD */
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.crud-table th, .crud-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.crud-table th {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.crud-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.loader {
+  padding: 2rem;
+  text-align: center;
+  color: var(--primary);
+  font-weight: 700;
+}

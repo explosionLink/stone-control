@@ -2,8 +2,14 @@
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 
+import { computed } from 'vue'
 const auth = useAuthStore()
 const router = useRouter()
+
+const isAdmin = computed(() => {
+  return auth.user?.app_metadata?.roles?.includes('admin') ||
+         auth.user?.user_metadata?.role === 'admin'
+})
 
 const handleLogout = () => {
   auth.logout()
@@ -25,6 +31,9 @@ const handleLogout = () => {
           <RouterLink to="/">Dashboard</RouterLink>
           <template v-if="auth.isAuthenticated">
             <RouterLink to="/orders">Ordini</RouterLink>
+            <RouterLink to="/clients">Clienti</RouterLink>
+            <RouterLink v-if="isAdmin" to="/users">Utenti</RouterLink>
+            <RouterLink v-if="isAdmin" to="/roles">Ruoli</RouterLink>
             <RouterLink to="/library">Libreria Fori</RouterLink>
             <div class="user-menu">
               <RouterLink to="/profile" class="profile-link">
