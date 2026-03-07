@@ -38,6 +38,17 @@ const orders = ref<Order[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
 
+const deleteOrder = async (orderId: string) => {
+  if (confirm('Eliminare definitivamente questo ordine e tutti i suoi pezzi?')) {
+    try {
+      await axios.delete(`/api/v1/orders/${orderId}`);
+      fetchOrders();
+    } catch (err) {
+      console.error('Errore eliminazione ordine:', err);
+    }
+  }
+};
+
 const fetchOrders = async () => {
   try {
     const response = await axios.get('/api/v1/orders/');
@@ -104,6 +115,7 @@ onMounted(fetchOrders);
           <div class="order-summary-badge">
             {{ order.polygons.length }} Pezzi rilevati
           </div>
+          <button class="btn btn-danger btn-small" @click="deleteOrder(order.id)">🗑️ Elimina Ordine</button>
         </div>
 
         <div class="polygons-grid">

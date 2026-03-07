@@ -80,11 +80,11 @@ onMounted(fetchClients)
         </thead>
         <tbody>
           <tr v-for="client in clients" :key="client.id">
-            <td>{{ client.name }}</td>
+            <td><strong>{{ client.name }}</strong></td>
             <td><code>{{ client.code }}</code></td>
             <td class="actions">
-              <button class="btn small" @click="openEditModal(client)">Modifica</button>
-              <button class="btn small danger" @click="deleteClient(client.id)">Elimina</button>
+              <button class="btn btn-small btn-outline" @click="openEditModal(client)">✏️ Modifica</button>
+              <button class="btn btn-small btn-danger" @click="deleteClient(client.id)">🗑️ Elimina</button>
             </td>
           </tr>
         </tbody>

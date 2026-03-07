@@ -31,6 +31,17 @@ const deleteOrder = async () => {
   }
 }
 
+const deletePolygon = async (polyId: string) => {
+  if (confirm('Eliminare questo pezzo e tutte le sue lavorazioni?')) {
+    try {
+      await api.polygons.delete(polyId)
+      fetchOrder()
+    } catch (err) {
+      console.error('Errore eliminazione pezzo:', err)
+    }
+  }
+}
+
 const updateHole = async (hole: any) => {
   try {
      // Esempio semplice: apri un prompt o un altro modal per i valori
@@ -94,15 +105,18 @@ onMounted(fetchOrder)
         <p class="subtitle">Creato il {{ new Date(order.created_at).toLocaleString() }}</p>
       </div>
       <div class="header-actions">
-        <!-- Rimosso elimina ordine o limitato ad admin -->
-        <p class="info-text">Per correggere l'ordine, re-importa il PDF aggiornato nella Dashboard.</p>
+        <button class="btn btn-danger" @click="deleteOrder">🗑️ Elimina Ordine</button>
+        <p class="info-text">Per correggere l'ordine, puoi anche re-importare il PDF aggiornato.</p>
       </div>
     </div>
 
     <div class="polygons-list">
       <div v-for="poly in order.polygons" :key="poly.id" class="poly-card-detailed">
         <div class="poly-main">
-          <h3>{{ poly.label }}</h3>
+          <div class="poly-header-flex">
+            <h3>{{ poly.label }}</h3>
+            <button class="btn btn-small btn-danger" @click="deletePolygon(poly.id)">🗑️ Elimina Pezzo</button>
+          </div>
           <div class="poly-data">
             <div class="data-item"><strong>Dimensioni:</strong> {{ poly.width_mm }} x {{ poly.height_mm }} mm</div>
             <div class="data-item"><strong>Spessore:</strong> {{ poly.thickness_mm }} mm</div>
@@ -138,8 +152,8 @@ onMounted(fetchOrder)
                    <span v-else>{{ hole.width_mm }}x{{ hole.height_mm }}</span>
                 </td>
                 <td class="actions">
-                   <button class="btn small" @click="updateHole(hole)">Modifica</button>
-                   <button class="btn small danger" @click="deleteHole(hole.id)">Elimina</button>
+                   <button class="btn btn-small btn-outline" @click="updateHole(hole)">✏️ Modifica</button>
+                   <button class="btn btn-small btn-danger" @click="deleteHole(hole.id)">🗑️ Elimina</button>
                 </td>
               </tr>
             </tbody>
@@ -184,7 +198,9 @@ onMounted(fetchOrder)
 <style scoped>
 .order-detail { padding: 2rem 0; }
 .view-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-.info-text { font-size: 0.9rem; color: var(--text-muted); font-style: italic; max-width: 300px; text-align: right; }
+.poly-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.info-text { font-size: 0.8rem; color: var(--text-muted); font-style: italic; max-width: 300px; text-align: right; }
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-content { background: var(--bg-card); padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px; }
 .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }

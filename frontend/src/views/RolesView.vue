@@ -83,8 +83,8 @@ onMounted(fetchRoles)
             <td><strong>{{ role.name }}</strong></td>
             <td>{{ role.description }}</td>
             <td class="actions">
-              <button class="btn small" @click="openEditModal(role)">Modifica</button>
-              <button class="btn small danger" @click="deleteRole(role.id)">Elimina</button>
+              <button class="btn btn-small btn-outline" @click="openEditModal(role)">✏️ Modifica</button>
+              <button class="btn btn-small btn-danger" @click="deleteRole(role.id)">🗑️ Elimina</button>
             </td>
           </tr>
         </tbody>

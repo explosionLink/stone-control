@@ -85,8 +85,8 @@ onMounted(fetchUsers)
             <td>{{ user.role }}</td>
             <td>{{ user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'Mai' }}</td>
             <td class="actions">
-              <button class="btn small" @click="openEditModal(user)">Modifica</button>
-              <button class="btn small danger" @click="deleteUser(user.id)">Elimina</button>
+              <button class="btn btn-small btn-outline" @click="openEditModal(user)">✏️ Modifica</button>
+              <button class="btn btn-small btn-danger" @click="deleteUser(user.id)">🗑️ Elimina</button>
             </td>
           </tr>
         </tbody>

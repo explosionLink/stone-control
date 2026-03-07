@@ -106,11 +106,11 @@ onMounted(fetchHoles);
             <td>{{ hole.depth_mm !== null ? hole.depth_mm + ' mm' : '-' }}</td>
             <td class="actions-col">
               <div class="actions-flex">
-                <button @click="openEditModal(hole)" class="btn-edit" title="Modifica">
-                  ✏️
+                <button @click="openEditModal(hole)" class="btn btn-small btn-outline" title="Modifica">
+                  ✏️ Modifica
                 </button>
-                <button @click="deleteHole(hole.id)" class="btn-delete" title="Elimina">
-                  🗑️
+                <button @click="deleteHole(hole.id)" class="btn btn-small btn-danger" title="Elimina">
+                  🗑️ Elimina
                 </button>
               </div>
             </td>
@@ -293,7 +293,7 @@ onMounted(fetchHoles);
 
 .actions-col {
   text-align: right;
-  width: 120px;
+  width: 200px;
 }
 
 .actions-flex {
