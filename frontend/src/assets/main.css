@@ -54,13 +54,28 @@
 }
 
 .btn-danger {
-  background-color: var(--danger);
+  background-color: #ff3b3b; /* Rosso più acceso per contrasto */
   color: white;
-  font-weight: 700;
+  font-weight: 800;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .btn-danger:hover {
-  filter: brightness(1.2);
+  background-color: #ff1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.btn-primary {
+  background-color: #2ecc71; /* Verde più saturo */
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-primary:hover {
+  background-color: #27ae60;
 }
 
 .btn-small {
